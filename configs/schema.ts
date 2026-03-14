@@ -85,6 +85,7 @@ export const resumesTable = pgTable("resumes", {
 export const doubtsTable = pgTable("doubts", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     userName: varchar({ length: 255 }).notNull(), // Randomly generated Student_XXX
+    userEmail: varchar({ length: 255 }), // Secure owner identification
     classroomId: integer(), // Null for public, or ID for classroom-specific
     subject: varchar({ length: 100 }).notNull(), // Math, Physics, Programming, Others
     content: text(),
@@ -92,6 +93,7 @@ export const doubtsTable = pgTable("doubts", {
     likes: integer().default(0),
     isSolved: varchar({ length: 20 }).default("unsolved"), // unsolved, solved
     solvedReplyId: integer(), // ID of the specific reply that solved it
+    type: varchar({ length: 20 }).default("community"), // 'ai', 'community', 'teacher'
     createdAt: timestamp().defaultNow().notNull(),
 });
 

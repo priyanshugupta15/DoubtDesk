@@ -17,7 +17,8 @@ import {
     Calendar,
     ChevronRight,
     Copy,
-    Check
+    Check,
+    Home
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -128,37 +129,36 @@ export default function RoomsPage() {
             
             <div className="max-w-7xl mx-auto relative z-10">
                 {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
-                    <div className="space-y-4">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-black uppercase tracking-widest">
-                            <Box className="w-3.5 h-3.5" /> Virtual Campus
+                <div className="sticky top-0 z-50 bg-[#020617]/80 backdrop-blur-xl -mx-6 md:-mx-12 px-6 md:px-12 py-8 mb-16 border-b border-white/5">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-3">
+                                <Link href="/" className="inline-flex items-center gap-2 text-slate-400 text-xs font-black uppercase tracking-widest hover:text-white underline underline-offset-4 transition-all">
+                                    <Home className="w-3.5 h-3.5" /> Home
+                                </Link>
+                            </div>
+                            <h1 className="text-6xl font-black tracking-tighter uppercase italic">
+                                Virtual <span className="text-blue-500">Classrooms</span>
+                            </h1>
                         </div>
-                        <h1 className="text-6xl font-black tracking-tighter uppercase italic">
-                            Class<span className="text-blue-500">rooms</span>
-                        </h1>
-                        <p className="text-slate-400 font-medium text-lg max-w-xl">
-                            {appUser?.role === 'teacher' 
-                                ? "Orchestrate your academic communities. Manage doubts and insights in real-time."
-                                : "Join your academic circles. Access AI support and community wisdom."}
-                        </p>
-                    </div>
 
-                    <div className="flex items-center gap-4">
-                        {appUser?.role === 'teacher' || appUser?.role === 'admin' ? (
-                            <button 
-                                onClick={() => setIsCreateModalOpen(true)}
-                                className="group flex items-center gap-3 px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 active:scale-[0.98]"
-                            >
-                                <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> New Class
-                            </button>
-                        ) : (
-                            <button 
-                                onClick={() => setIsJoinModalOpen(true)}
-                                className="group flex items-center gap-3 px-8 py-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-[0.98]"
-                            >
-                                <LinkIcon className="w-5 h-5" /> Join Code
-                            </button>
-                        )}
+                        <div className="flex items-center gap-4">
+                            {appUser?.role === 'teacher' || appUser?.role === 'admin' ? (
+                                <button 
+                                    onClick={() => setIsCreateModalOpen(true)}
+                                    className="group flex items-center gap-3 px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 active:scale-[0.98]"
+                                >
+                                    <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> New Class
+                                </button>
+                            ) : (
+                                <button 
+                                    onClick={() => setIsJoinModalOpen(true)}
+                                    className="group flex items-center gap-3 px-8 py-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-[0.98]"
+                                >
+                                    <LinkIcon className="w-5 h-5" /> Join Code
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
 

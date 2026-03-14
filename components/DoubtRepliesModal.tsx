@@ -19,9 +19,10 @@ interface DoubtRepliesModalProps {
     isOpen: boolean;
     onClose: () => void;
     onReplyChange?: () => void;
+    isTeacher?: boolean;
 }
 
-export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChange }: DoubtRepliesModalProps) {
+export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChange, isTeacher = false }: DoubtRepliesModalProps) {
     const [replies, setReplies] = useState<Reply[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [chatText, setChatText] = useState("");
@@ -255,7 +256,7 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
                         </div>
 
                         <div className="flex items-center gap-2 shrink-0">
-                            {isDoubtOwner && reply.type === 'solution' && !editingId && (
+                            {(isDoubtOwner || isTeacher) && reply.type === 'solution' && !editingId && (
                                 <button 
                                     onClick={() => handleMarkAsSolution(reply.id)}
                                     disabled={isSolving}
@@ -502,9 +503,10 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
                 </div>
 
                 {/* Hybrid Input Area */}
-                <div className="p-8 bg-white/[0.02] border-t border-white/5 solution-form-area">
+                {(doubt.type !== 'teacher' || isTeacher) && (
+                    <div className="p-8 bg-white/[0.02] border-t border-white/5 solution-form-area">
                     {showSolutionForm ? (
-                        <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500 bg-white/[0.03] p-8 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-hidden group/form">
+                        <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500 bg-white/[0.03] p-8 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-y-auto max-h-[60vh] group/form custom-scrollbar">
                             {/* Decorative Background Blur */}
                             <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/10 blur-[80px] rounded-full pointer-events-none" />
                             
@@ -632,7 +634,8 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
                             </div>
                         </div>
                     )}
-                </div>
+                    </div>
+                )}
             </div>
 
             {/* Fullscreen Image Viewer */}

@@ -1,8 +1,8 @@
 import { db } from "@/configs/db";
-import { doubtsTable, likesTable, repliesTable, membershipsTable } from "@/configs/schema";
-import { and, eq, desc, isNull } from "drizzle-orm";
+import { doubtsTable, likesTable, repliesTable, membershipsTable, classroomsTable } from "@/configs/schema";
+import { and, eq, desc, isNull, or, not } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
@@ -10,10 +10,12 @@ export async function GET(req: Request) {
     const userName = searchParams.get("userName");
     const classroomIdStr = searchParams.get("classroomId");
     const classroomId = classroomIdStr ? parseInt(classroomIdStr) : null;
+    const type = searchParams.get("type") || 'community';
 
     try {
         const user = await currentUser();
-        const email = user?.primaryEmailAddress?.emailAddress;
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const email = user.primaryEmailAddress?.emailAddress;
 
         // Security: If classroomId is provided, check membership
         if (classroomId && email) {
@@ -31,15 +33,38 @@ export async function GET(req: Request) {
         let query = db.select().from(doubtsTable);
         let conditions = [];
 
+        // Base Classroom scoping
         if (classroomId) {
             conditions.push(eq(doubtsTable.classroomId, classroomId));
         } else {
-            // Public doubts only (where classroomId is null)
             conditions.push(isNull(doubtsTable.classroomId));
         }
 
+        // Fetch classroom role info
+        const [room] = classroomId ? await db.select().from(classroomsTable).where(eq(classroomsTable.id, classroomId)) : [null];
+        const isTeacher = room && email && room.teacherEmail === email;
+
+        // GLOBAL VISIBILITY FILTER
+        // If not the teacher, you can only see 'teacher' doubts if you are the owner
+        if (!isTeacher && email) {
+            conditions.push(
+                or(
+                    not(eq(doubtsTable.type, 'teacher')),
+                    eq(doubtsTable.userEmail, email)
+                )
+            );
+        } else if (!isTeacher && !email) {
+            // Extreme fallback: if no email, only show non-teacher doubts
+            conditions.push(not(eq(doubtsTable.type, 'teacher')));
+        }
+
+        // Filters
         if (subject && subject !== "All") {
             conditions.push(eq(doubtsTable.subject, subject));
+        }
+
+        if (type && type !== "All") {
+            conditions.push(eq(doubtsTable.type, type));
         }
 
         let doubts = await query.where(and(...conditions)).orderBy(desc(doubtsTable.createdAt));
@@ -80,7 +105,11 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
     try {
-        const { userName, subject, content, imageUrl, classroomId } = await req.json();
+        const user = await currentUser();
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        
+        const email = user.primaryEmailAddress?.emailAddress;
+        const { userName, subject, content, imageUrl, classroomId, type = 'community' } = await req.json();
 
         if (!userName || !subject || (!content?.trim() && !imageUrl)) {
             return NextResponse.json({ error: "Missing required fields (provide text or image)" }, { status: 400 });
@@ -88,10 +117,12 @@ export async function POST(req: Request) {
 
         const newDoubt = await db.insert(doubtsTable).values({
             userName,
+            userEmail: email || null,
             subject,
             content,
             imageUrl,
             classroomId: classroomId ? parseInt(classroomId.toString()) : null,
+            type
         }).returning();
 
         return NextResponse.json(newDoubt[0]);

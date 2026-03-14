@@ -52,18 +52,13 @@ async function callGroqWithFallback(messages: any[], isVision: boolean) {
 
 export async function POST(req: Request) {
     try {
-        const { userId, sessionClaims } = await auth();
-        if (!userId) {
+        const user = await currentUser();
+        if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Try to get name from claims, fallback to currentUser for full detail if needed for DB
-        let fullName = (sessionClaims as any)?.full_name || (sessionClaims as any)?.name || "";
-
-        if (!fullName) {
-             const user = await currentUser();
-             fullName = user?.fullName || "";
-        }
+        const fullName = user.fullName || (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : "Academic Student");
+        const email = user.primaryEmailAddress?.emailAddress;
 
         const body = await req.json();
         const { prompt, type = 'standard', imageBase64, classroomId } = body;
@@ -122,11 +117,13 @@ ${prompt ? `Additional context from student: ${prompt}` : ''}`;
         // --- FULL PERSISTENCE LOGIC ---
         try {
             const [newDoubt] = await db.insert(doubtsTable).values({
-                userName: fullName || `Student_${Math.floor(Math.random() * 1000)}`,
+                userName: fullName,
+                userEmail: email || null,
                 subject: subject,
                 content: prompt || "Visual Inquiry",
                 imageUrl: imageBase64?.slice(0, 500),
                 classroomId: classroomId ? parseInt(classroomId.toString()) : null,
+                type: 'ai',
                 isSolved: "solved"
             }).returning();
 
