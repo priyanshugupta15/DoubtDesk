@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { X, Loader2, Upload, File } from "lucide-react";
 
 interface AskDoubtProps {
-    defaultSubject?: string;
+    subject?: string;
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
@@ -12,7 +12,7 @@ interface AskDoubtProps {
     classroomId?: number | null;
 }
 
-export default function AskDoubt({ defaultSubject = "", isOpen, onClose, onSuccess, doubtToEdit, classroomId = null }: AskDoubtProps) {
+export default function AskDoubt({ subject: defaultSubject = "", isOpen, onClose, onSuccess, doubtToEdit, classroomId = null }: AskDoubtProps) {
     const [content, setContent] = useState(doubtToEdit?.content || "");
     const [subject, setSubject] = useState(doubtToEdit?.subject || defaultSubject);
     const [imageUrl, setImageUrl] = useState(doubtToEdit?.imageUrl || "");

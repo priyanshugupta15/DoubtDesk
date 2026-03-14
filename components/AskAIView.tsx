@@ -11,7 +11,7 @@ import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import 'katex/dist/katex.min.css';
 
-type SolveType = 'standard' | 'simple' | 'exam';
+type SolveType = 'standard' | 'simple' | 'exam' | 'eli10';
 
 const SECTION_META: Record<string, { icon: React.ReactNode; color: string; badge: string }> = {
     'Step-by-step explanation': {
@@ -55,7 +55,32 @@ export default function AskAIView({ classroomId = null }: { classroomId?: number
     const [isLoading, setIsLoading] = useState(false);
     const [currentType, setCurrentType] = useState<SolveType>('standard');
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [isVideoLoading, setIsVideoLoading] = useState(false);
+    const [videoUrl, setVideoUrl] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleGenerateVideo = async () => {
+        if (!response) return;
+        setIsVideoLoading(true);
+        setVideoUrl(null);
+        try {
+            const res = await fetch('/api/video/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    content: response || prompt, 
+                    imageUrl: imageBase64 
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Video generation failed.");
+            setVideoUrl(data.videoUrl);
+        } catch (err: any) {
+            setErrorMsg(err.message);
+        } finally {
+            setIsVideoLoading(false);
+        }
+    };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -148,7 +173,14 @@ export default function AskAIView({ classroomId = null }: { classroomId?: number
                         </>
                     )}
 
-                    <div className="flex justify-end">
+                    <div className="flex flex-wrap gap-2 justify-end">
+                        <button
+                            onClick={() => handleAskAI('eli10')}
+                            disabled={isLoading || (!prompt.trim() && !imageBase64)}
+                            className="flex items-center gap-2 px-5 py-3 bg-pink-500/10 hover:bg-pink-500/20 text-pink-400 border border-pink-500/20 rounded-2xl font-black uppercase tracking-widest text-[9px] transition-all disabled:opacity-40"
+                        >
+                            <Brain className="w-3 h-3" /> ELI 10
+                        </button>
                         <button
                             onClick={() => handleAskAI('standard')}
                             disabled={isLoading || (!prompt.trim() && !imageBase64)}
@@ -160,6 +192,32 @@ export default function AskAIView({ classroomId = null }: { classroomId?: number
                     </div>
                 </div>
             </div>
+
+            {isVideoLoading && (
+                <div className="p-12 bg-slate-900/40 border border-white/5 rounded-3xl flex flex-col items-center justify-center gap-4 text-center">
+                    <div className="relative">
+                        <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
+                        <Zap className="w-6 h-6 text-yellow-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+                    </div>
+                    <div>
+                        <p className="text-white font-black uppercase tracking-widest text-xs">Generating Video AI Masterpiece</p>
+                        <p className="text-slate-500 text-[10px] mt-1 italic">Creating slides, synthesizing voice, and rendering frames...</p>
+                    </div>
+                </div>
+            )}
+
+            {videoUrl && (
+                <div className="bg-slate-950 border-4 border-blue-500/30 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-blue-500/10">
+                    <div className="bg-blue-500/10 px-6 py-4 border-b border-blue-500/20 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Zap className="w-5 h-5 text-blue-400" />
+                            <span className="text-white font-black uppercase tracking-tighter italic">AI Video Explanation</span>
+                        </div>
+                        <span className="bg-blue-500 text-white text-[9px] font-black px-3 py-1 rounded-full uppercase italic">4K UHD AI</span>
+                    </div>
+                    <video src={videoUrl} controls className="w-full aspect-video" />
+                </div>
+            )}
 
             {errorMsg && (
                 <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-500 text-xs font-bold">
@@ -180,6 +238,15 @@ export default function AskAIView({ classroomId = null }: { classroomId?: number
                                         </div>
                                     )}
                                     <h2 className="text-white font-black tracking-tight text-sm uppercase italic">{sec.title}</h2>
+                                    {idx === 0 && (
+                                        <button
+                                            onClick={handleGenerateVideo}
+                                            disabled={isVideoLoading}
+                                            className="ml-auto flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold uppercase tracking-tighter text-[9px] shadow-lg shadow-blue-500/20 active:scale-95 transition-all disabled:opacity-50"
+                                        >
+                                            <Zap className="w-3 h-3 text-yellow-400 fill-yellow-400" /> Generate Video
+                                        </button>
+                                    )}
                                 </div>
                                 <div className="px-6 py-6 prose prose-invert max-w-none">
                                     <ReactMarkdown

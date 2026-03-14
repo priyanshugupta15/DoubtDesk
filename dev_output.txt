@@ -1,0 +1,286 @@
+
+> nextjs-boilerplate-1@0.1.0 dev
+> next dev
+
+  Γû▓ Next.js 14.2.15
+  - Local:        http://localhost:3000
+  - Environments: .env
+
+ Γ£ô Starting...
+ Γ£ô Ready in 4s
+ Γùï Compiling /middleware ...
+ Γ£ô Compiled /middleware in 2.3s (232 modules)
+ Γùï Compiling / ...
+ Γ£ô Compiled / in 13.4s (1261 modules)
+ GET / 200 in 15228ms
+ Γ£ô Compiled in 2.2s (479 modules)
+ GET / 200 in 272ms
+ Γùï Compiling /api/user ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (192kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ Γ£ô Compiled /api/user in 20s (901 modules)
+ POST / 200 in 21285ms
+ POST /api/user 401 in 21748ms
+ POST /api/user 401 in 21747ms
+ GET / 200 in 536ms
+ Γùï Compiling /_not-found ...
+ Γ£ô Compiled /_not-found in 2.2s (1369 modules)
+ Γùï Compiling /icon ...
+ Γ£ô Compiled /icon in 4.5s (429 modules)
+ GET /icon?21e1e81e0c44d91d 200 in 6896ms
+ Γùï Compiling /rooms ...
+ POST /api/user 200 in 2241ms
+ POST /api/user 200 in 2258ms
+ Γ£ô Compiled /rooms in 3.5s (1393 modules)
+ POST / 200 in 3776ms
+ Γùï Compiling /api/rooms ...
+ Γ£ô Compiled /api/rooms in 982ms (917 modules)
+ GET /api/rooms 200 in 3182ms
+ GET /api/rooms 200 in 1085ms
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (192kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ GET / 200 in 615ms
+ POST /api/user 401 in 155ms
+ POST /api/user 401 in 154ms
+ POST / 200 in 153ms
+ POST / 200 in 46ms
+ GET / 200 in 94ms
+ Γ£ô Compiled in 7.7s (1275 modules)
+ Γ£ô Compiled in 489ms (1261 modules)
+ Γ£ô Compiled in 1363ms (490 modules)
+ ΓÜá Found a change in next.config.mjs. Restarting the server to apply the changes...
+  Γû▓ Next.js 14.2.15
+  - Local:        http://localhost:3000
+  - Environments: .env
+
+ Γ£ô Starting...
+ ΓÜá Found lockfile missing swc dependencies, patching...
+ ΓÜá Lockfile was successfully patched, please run "npm install" to ensure @next/swc dependencies are downloaded
+ Γ£ô Ready in 8s
+ Γùï Compiling /middleware ...
+ Γ£ô Compiled /middleware in 2.8s (232 modules)
+ Γùï Compiling /rooms ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (192kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ Γ£ô Compiled / in 26.7s (1275 modules)
+ GET /rooms 200 in 27826ms
+ Γùï Compiling /api/user ...
+ Γ£ô Compiled /api/user in 2.1s (914 modules)
+ POST /rooms 200 in 2817ms
+ GET / 200 in 1971ms
+ POST /rooms 200 in 61ms
+ POST /api/user 200 in 4515ms
+ POST /api/user 200 in 4427ms
+ POST /api/user 401 in 170ms
+ POST / 200 in 139ms
+ POST /api/user 401 in 153ms
+ POST / 200 in 74ms
+ Γùï Compiling /sign-in/[[...sign-in]] ...
+ Γ£ô Compiled /sign-in/[[...sign-in]] in 2.2s (1265 modules)
+ GET /sign-in?redirect_url=http%3A%2F%2Flocalhost%3A3000%2Fdashboard 200 in 5090ms
+ Γùï Compiling /icon ...
+ Γ£ô Compiled /icon in 3.3s (429 modules)
+ GET /icon?21e1e81e0c44d91d 200 in 5011ms
+ Γùï Compiling /api/user ...
+ Γ£ô Compiled /api/user in 837ms (917 modules)
+ POST /sign-in?redirect_url=http%3A%2F%2Flocalhost%3A3000%2Fdashboard 200 in 3030ms
+ POST /api/user 401 in 3325ms
+ POST /api/user 401 in 3321ms
+ GET /sign-in/SignIn_clerk_catchall_check_1773493306072 200 in 3337ms
+ POST /sign-in?redirect_url=http%3A%2F%2Flocalhost%3A3000%2Fdashboard 200 in 45ms
+ GET / 200 in 250ms
+ POST /api/user 401 in 118ms
+ POST /api/user 401 in 82ms
+ POST / 200 in 61ms
+ POST / 200 in 30ms
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (192kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ GET / 200 in 179ms
+ GET / 200 in 115ms
+ POST /api/user 401 in 107ms
+ POST /api/user 401 in 105ms
+ POST / 200 in 128ms
+ POST / 200 in 70ms
+ POST /api/user 401 in 58ms
+ POST /api/user 401 in 56ms
+ POST / 200 in 67ms
+ POST / 200 in 33ms
+ Γùï Compiling /ask-ai ...
+ Γ£ô Compiled /ask-ai in 7.3s (2120 modules)
+ GET /ask-ai 200 in 8592ms
+ POST /api/user 401 in 260ms
+ POST /api/user 401 in 237ms
+ POST /ask-ai 200 in 265ms
+ POST /ask-ai 200 in 46ms
+ Γùï Compiling /api/ask-ai ...
+ Γ£ô Compiled /api/ask-ai in 1051ms (1303 modules)
+ POST /api/ask-ai 401 in 1294ms
+ GET /sign-in/SignIn_clerk_catchall_check_1773493449913 200 in 245ms
+ GET / 200 in 180ms
+ POST /api/user 401 in 102ms
+ POST /api/user 401 in 75ms
+ POST / 200 in 132ms
+ POST / 200 in 122ms
+RangeError: Array buffer allocation failed
+    at new ArrayBuffer (<anonymous>)
+    at new Uint8Array (<anonymous>)
+    at new FastBuffer (node:internal/buffer:961:5)
+    at createUnsafeBuffer (node:internal/buffer:1097:12)
+    at allocate (node:buffer:444:10)
+    at Function.allocUnsafe (node:buffer:409:10)
+    at Gzip.ZlibBase (node:zlib:261:28)
+    at Gzip.Zlib (node:zlib:690:3)
+    at new Gzip (node:zlib:748:3)
+    at value (node:zlib:942:14)
+    at C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\compiled\webpack\bundle5.js:28:1215843
+    at new Promise (<anonymous>)
+    at writeFile (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\compiled\webpack\bundle5.js:28:1215751)
+    at serialize (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\compiled\webpack\bundle5.js:28:1213615)
+    at async Promise.all (index 11)
+ Γ¿» unhandledRejection: RangeError: Array buffer allocation failed
+    at new ArrayBuffer (<anonymous>)
+    at new Uint8Array (<anonymous>)
+    at new FastBuffer (node:internal/buffer:961:5)
+    at createUnsafeBuffer (node:internal/buffer:1097:12)
+    at allocate (node:buffer:444:10)
+    at Function.allocUnsafe (node:buffer:409:10)
+    at Gzip.ZlibBase (node:zlib:261:28)
+    at Gzip.Zlib (node:zlib:690:3)
+    at new Gzip (node:zlib:748:3)
+    at value (node:zlib:942:14)
+    at C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\compiled\webpack\bundle5.js:28:1215843
+    at new Promise (<anonymous>)
+    at writeFile (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\compiled\webpack\bundle5.js:28:1215751)
+    at serialize (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\compiled\webpack\bundle5.js:28:1213615)
+    at async Promise.all (index 11)
+ Γ¿» unhandledRejection: RangeError: Array buffer allocation failed
+    at new ArrayBuffer (<anonymous>)
+    at new Uint8Array (<anonymous>)
+    at new FastBuffer (node:internal/buffer:961:5)
+    at createUnsafeBuffer (node:internal/buffer:1097:12)
+    at allocate (node:buffer:444:10)
+    at Function.allocUnsafe (node:buffer:409:10)
+    at Gzip.ZlibBase (node:zlib:261:28)
+    at Gzip.Zlib (node:zlib:690:3)
+    at new Gzip (node:zlib:748:3)
+    at value (node:zlib:942:14)
+    at C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\compiled\webpack\bundle5.js:28:1215843
+    at new Promise (<anonymous>)
+    at writeFile (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\compiled\webpack\bundle5.js:28:1215751)
+    at serialize (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\compiled\webpack\bundle5.js:28:1213615)
+    at async Promise.all (index 11)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: RangeError: Array buffer allocation failed
+ GET /ask-ai 200 in 563ms
+ POST /api/user 401 in 150ms
+ POST /api/user 401 in 122ms
+ POST /ask-ai 200 in 153ms
+ POST /ask-ai 200 in 65ms
+ Γùï Compiling /public-rooms ...
+ Γ£ô Compiled /public-rooms in 4.4s (2101 modules)
+ Γùï Compiling /api/doubts ...
+ Γ£ô Compiled /api/doubts in 4.9s (1334 modules)
+Error fetching doubts: DrizzleQueryError: Failed query: select "id", "userName", "classroomId", "subject", "subTopic", "content", "imageUrl", "likes", "isSolved", "solvedReplyId", "createdAt" from "doubts" where "doubts"."classroomId" is null order by "doubts"."createdAt" desc
+params: 
+    at NeonHttpPreparedQuery.queryWithCache (webpack-internal:///(rsc)/./node_modules/drizzle-orm/pg-core/session.js:53:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async NeonHttpPreparedQuery.execute (webpack-internal:///(rsc)/./node_modules/drizzle-orm/neon-http/session.js:57:20)
+    ... 9 lines matching cause stack trace ...
+    at async DevServer.pipeImpl (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\server\base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\server\base-server.js:817:17) {
+  query: 'select "id", "userName", "classroomId", "subject", "subTopic", "content", "imageUrl", "likes", "isSolved", "solvedReplyId", "createdAt" from "doubts" where "doubts"."classroomId" is null order by "doubts"."createdAt" desc',
+  params: [],
+  cause: NeonDbError: column "subTopic" does not exist
+      at dr.execute (webpack-internal:///(rsc)/./node_modules/@neondatabase/serverless/index.mjs:1316:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async eval (webpack-internal:///(rsc)/./node_modules/drizzle-orm/neon-http/session.js:58:14)
+      at async NeonHttpPreparedQuery.queryWithCache (webpack-internal:///(rsc)/./node_modules/drizzle-orm/pg-core/session.js:51:16)
+      at async NeonHttpPreparedQuery.execute (webpack-internal:///(rsc)/./node_modules/drizzle-orm/neon-http/session.js:57:20)
+      at async GET (webpack-internal:///(rsc)/./app/api/doubts/route.ts:50:22)
+      at async C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:55778
+      at async eO.execute (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:46527)
+      at async eO.handle (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:57112)
+      at async doRender (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\server\base-server.js:1352:42)
+      at async cacheEntry.responseCache.get.routeKind (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\server\base-server.js:1574:28)
+      at async DevServer.renderToResponseWithComponentsImpl (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\server\base-server.js:1482:28)
+      at async DevServer.renderPageComponent (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\server\base-server.js:1908:24)
+      at async DevServer.renderToResponseImpl (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\server\base-server.js:1946:32)
+      at async DevServer.pipeImpl (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\server\base-server.js:921:25) {
+    severity: 'ERROR',
+    code: '42703',
+    detail: undefined,
+    hint: undefined,
+    position: '52',
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'parse_relation.c',
+    line: '3716',
+    routine: 'errorMissingColumn',
+    sourceError: undefined
+  }
+}
+ GET /api/doubts? 500 in 11268ms
+Error fetching doubts: DrizzleQueryError: Failed query: select "id", "userName", "classroomId", "subject", "subTopic", "content", "imageUrl", "likes", "isSolved", "solvedReplyId", "createdAt" from "doubts" where "doubts"."classroomId" is null order by "doubts"."createdAt" desc
+params: 
+    at NeonHttpPreparedQuery.queryWithCache (webpack-internal:///(rsc)/./node_modules/drizzle-orm/pg-core/session.js:53:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async NeonHttpPreparedQuery.execute (webpack-internal:///(rsc)/./node_modules/drizzle-orm/neon-http/session.js:57:20)
+    ... 9 lines matching cause stack trace ...
+    at async DevServer.pipeImpl (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\server\base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\server\base-server.js:817:17) {
+  query: 'select "id", "userName", "classroomId", "subject", "subTopic", "content", "imageUrl", "likes", "isSolved", "solvedReplyId", "createdAt" from "doubts" where "doubts"."classroomId" is null order by "doubts"."createdAt" desc',
+  params: [],
+  cause: NeonDbError: column "subTopic" does not exist
+      at dr.execute (webpack-internal:///(rsc)/./node_modules/@neondatabase/serverless/index.mjs:1316:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async eval (webpack-internal:///(rsc)/./node_modules/drizzle-orm/neon-http/session.js:58:14)
+      at async NeonHttpPreparedQuery.queryWithCache (webpack-internal:///(rsc)/./node_modules/drizzle-orm/pg-core/session.js:51:16)
+      at async NeonHttpPreparedQuery.execute (webpack-internal:///(rsc)/./node_modules/drizzle-orm/neon-http/session.js:57:20)
+      at async GET (webpack-internal:///(rsc)/./app/api/doubts/route.ts:50:22)
+      at async C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:55778
+      at async eO.execute (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:46527)
+      at async eO.handle (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:57112)
+      at async doRender (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\server\base-server.js:1352:42)
+      at async cacheEntry.responseCache.get.routeKind (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\server\base-server.js:1574:28)
+      at async DevServer.renderToResponseWithComponentsImpl (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\server\base-server.js:1482:28)
+      at async DevServer.renderPageComponent (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\server\base-server.js:1908:24)
+      at async DevServer.renderToResponseImpl (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\server\base-server.js:1946:32)
+      at async DevServer.pipeImpl (C:\Users\HP\OneDrive\Desktop\Padhai\Hackathon\DoubtDesk\node_modules\next\dist\server\base-server.js:921:25) {
+    severity: 'ERROR',
+    code: '42703',
+    detail: undefined,
+    hint: undefined,
+    position: '52',
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'parse_relation.c',
+    line: '3716',
+    routine: 'errorMissingColumn',
+    sourceError: undefined
+  }
+}
+ GET /api/doubts? 500 in 305ms
+ GET /ask-ai?mock=true 200 in 776ms
+ POST /ask-ai?mock=true 200 in 117ms
+ POST /api/user 401 in 123ms
+ POST /api/user 401 in 107ms
+ POST /ask-ai?mock=true 200 in 73ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: RangeError: Array buffer allocation failed
+ GET /ask-ai?mock=true 200 in 196ms
+ GET /icon?21e1e81e0c44d91d 200 in 1050ms
+ POST /api/user 401 in 93ms
+ POST /api/user 401 in 93ms
+ POST /ask-ai?mock=true 200 in 102ms
+ POST /ask-ai?mock=true 200 in 39ms
+ Γùï Compiling /api/ask-ai ...
+ Γ£ô Compiled /api/ask-ai in 1417ms (1331 modules)
+ POST /api/ask-ai 401 in 2173ms

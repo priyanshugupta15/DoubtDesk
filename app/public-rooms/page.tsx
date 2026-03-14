@@ -143,7 +143,7 @@ export default function PublicRoomsPage() {
 
             {isAskModalOpen && (
                 <AskDoubt 
-                    defaultSubject={filter !== "All" ? filter : "Math"}
+                    subject={filter !== "All" ? filter : "Math"}
                     isOpen={isAskModalOpen} 
                     onClose={() => setIsAskModalOpen(false)} 
                     onSuccess={() => {

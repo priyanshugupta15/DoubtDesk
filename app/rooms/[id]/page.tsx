@@ -85,7 +85,13 @@ export default function ClassroomPage() {
             const userName = localStorage.getItem("anonymous_user");
             const res = await fetch(`/api/doubts?classroomId=${id}&userName=${userName}`);
             const data = await res.json();
-            setDoubts(data);
+            if (Array.isArray(data)) {
+                setDoubts(data);
+            } else {
+                console.error("Doubts API returned non-array data:", data);
+                setDoubts([]);
+                if (data.error) toast.error(data.error);
+            }
         } catch (err) {
             toast.error("Failed to load doubts");
         } finally {
@@ -234,7 +240,7 @@ export default function ClassroomPage() {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {doubts.map((doubt: any) => (
+                                {Array.isArray(doubts) && doubts.map((doubt: any) => (
                                     <DoubtCard key={doubt.id} doubt={doubt} onUpdate={fetchScopedDoubts} />
                                 ))}
                             </div>
@@ -259,7 +265,7 @@ export default function ClassroomPage() {
                         fetchScopedDoubts();
                     }}
                     classroomId={Number(id)}
-                    defaultSubject="General"
+                    subject="General"
                 />
             )}
         </div>

@@ -88,6 +88,13 @@ Then write 3-5 short paragraphs using plain English and a real-world analogy. No
         } else if (type === 'exam') {
             systemPrompt = `You are a strict exam-focused AI Tutor. VERY FIRST LINE must be: SUBJECT: [Detected Subject from: ${SUBJECT_LIST}]
 Then provide an EXAM-READY answer with Key Formula, Step-by-step, Common mistakes, and Examiner keywords.`;
+        } else if (type === 'eli10') {
+            systemPrompt = `You are a friendly AI teacher explaining to a 10-year-old. VERY FIRST LINE must be: SUBJECT: [Detected Subject from: ${SUBJECT_LIST}]
+Use fun analogies, simple words, and no complex math notation unless explained by a fun story. 
+Structure:
+## Step-by-step explanation
+## Simplified explanation
+## Final Answer`;
         }
 
         const isVisionRequest = !!imageBase64;
