@@ -87,7 +87,7 @@ export async function GET(req: Request) {
         // Fetch reply counts using an aggregate query
         const replyCounts = await db.select({
             doubtId: repliesTable.doubtId,
-            count: db.$count(repliesTable)
+            count: sql<number>`count(*)`.mapWith(Number)
         })
         .from(repliesTable)
         .groupBy(repliesTable.doubtId);

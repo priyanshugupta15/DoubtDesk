@@ -84,15 +84,15 @@ export default function Home() {
       </AlertDialog>
 
       {/* Hero Section */}
-      <main className="flex-1 pt-32 mt-10 relative overflow-hidden">
-        <section className="px-6 pb-20 relative z-10">
+      <main className="flex-1 pt-24 mt-6 relative overflow-hidden">
+        <section className="px-6 pb-12 relative z-10">
           <div className="max-w-7xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-500/10 text-blue-400 rounded-full text-sm font-medium mb-8 border border-blue-500/20 animate-fade-in backdrop-blur-md">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-500/10 text-blue-400 rounded-full text-sm font-medium mb-6 border border-blue-500/20 animate-fade-in backdrop-blur-md">
               <Sparkles className="w-4 h-4" />
               AI-Powered Career Intelligence
             </div>
 
-            <h2 className="text-6xl md:text-8xl font-black text-white tracking-tight leading-[1.1] mb-8">
+            <h2 className="text-6xl md:text-8xl font-black text-white tracking-tight leading-[1.1] mb-6">
               Navigate Your Career with <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">
                 Precision AI.
@@ -103,7 +103,7 @@ export default function Home() {
               DoubtDesk is your personal AI career wingman. From resume analysis to custom learning roadmaps, we provide the tools you need to level up your professional life.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-24">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
               <SignedIn>
                 <Link href="/rooms" className="w-full sm:w-auto">
                   <button className="group px-10 py-5 bg-blue-600 text-white rounded-2xl text-lg font-bold hover:bg-blue-700 hover:shadow-[0_0_30px_rgba(37,99,235,0.4)] transition-all w-full flex items-center justify-center gap-2">

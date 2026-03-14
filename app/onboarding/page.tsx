@@ -56,7 +56,7 @@ export default function OnboardingPage() {
             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/10 blur-[120px] rounded-full translate-y-1/2 -translate-x-1/2" />
 
             <div className="w-full max-w-xl relative animate-in fade-in slide-in-from-bottom-8 duration-700">
-                <div className="text-center mb-10 space-y-4">
+                <div className="text-center mb-6 space-y-3">
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-black uppercase tracking-widest">
                         <Sparkles className="w-3.5 h-3.5" /> Initialize Experience
                     </div>
@@ -68,7 +68,7 @@ export default function OnboardingPage() {
                     </p>
                 </div>
 
-                <div className="bg-white/5 border border-white/10 p-8 md:p-10 rounded-[2.5rem] backdrop-blur-2xl shadow-2xl space-y-8">
+                <div className="bg-white/5 border border-white/10 p-6 md:p-8 rounded-[2.5rem] backdrop-blur-2xl shadow-2xl space-y-8">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Role Selection */}
                         <div className="grid grid-cols-3 gap-3">
@@ -107,7 +107,7 @@ export default function OnboardingPage() {
                         </div>
 
                         {/* College Email & Year */}
-                        <div className={`grid grid-cols-1 ${formData.role === 'student' ? 'md:grid-cols-2' : ''} gap-6`}>
+                        <div className={`grid grid-cols-1 ${formData.role === 'student' ? 'md:grid-cols-2' : ''} gap-4`}>
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 px-1 flex items-center gap-2">
                                     <Mail className="w-3 h-3" /> College Email

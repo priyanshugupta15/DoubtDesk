@@ -25,7 +25,8 @@ import {
     Layers,
     PieChart,
     Zap,
-    AlertTriangle
+    AlertTriangle,
+    Target
 } from "lucide-react";
 import AskDoubt from "@/components/AskDoubt";
 import DoubtCard from "@/components/DoubtCard";
@@ -158,7 +159,7 @@ export default function ClassroomPage() {
     return (
         <div className="min-h-screen bg-[#020617] text-white">
             {/* Header / Banner */}
-            <div className="sticky top-0 z-50 bg-[#020617]/80 backdrop-blur-xl border-b border-white/5 pt-12 pb-8 px-6 md:px-12 relative overflow-hidden">
+            <div className="sticky top-0 z-50 bg-[#020617]/80 backdrop-blur-xl border-b border-white/5 pt-6 pb-6 px-6 md:px-12 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/5 blur-[120px] rounded-full translate-x-1/3 -translate-y-1/3" />
                 
                 <div className="max-w-7xl mx-auto relative z-10">
@@ -178,7 +179,7 @@ export default function ClassroomPage() {
                         </button>
                     </div>
 
-                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-8 mt-4">
+                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mt-4">
                         <div className="space-y-4">
                             <div className="flex items-center gap-3">
                                 <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center text-3xl font-black italic">
@@ -223,9 +224,9 @@ export default function ClassroomPage() {
             </div>
 
             {/* Content Area */}
-            <div className="max-w-7xl mx-auto p-6 md:p-12">
+            <div className="max-w-7xl mx-auto p-4 md:py-8 md:px-12">
                 {activeTab === "ask-ai" && (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-16">
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-10">
                         <div className="space-y-8">
                             <h2 className="text-2xl font-black uppercase italic tracking-tight text-center">ASK <span className="text-blue-500">AI Teacher</span></h2>
                             <div className="max-w-3xl mx-auto">
@@ -452,7 +453,7 @@ export default function ClassroomPage() {
                 {activeTab === "insights" && (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                          {/* We can pass classroomId to the dashboard view */}
-                         <ClassroomInsightsView classroomId={Number(id)} />
+                         <ClassroomInsightsView classroomId={Number(id)} role={classroom?.role} />
                     </div>
                 )}
             </div>
@@ -513,9 +514,11 @@ export default function ClassroomPage() {
 }
 
 // Simple implementations for sub-views or we can extract them later
-function ClassroomInsightsView({ classroomId }: { classroomId: number }) {
+function ClassroomInsightsView({ classroomId, role }: { classroomId: number, role?: string }) {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+
+    const isTeacher = role === 'teacher';
 
     const fetchData = () => {
         setLoading(true);
@@ -539,7 +542,12 @@ function ClassroomInsightsView({ classroomId }: { classroomId: number }) {
     const solvedPercentage = totalDoubtStats > 0 ? (Number(solvedCount) / totalDoubtStats) * 100 : 0;
 
     return (
-        <div className="space-y-16 animate-in fade-in duration-700">
+        <div className="space-y-10 animate-in fade-in duration-700">
+            {/* AI Learning Mentor for Students */}
+            {!isTeacher && (
+                <PersonalMentorView classroomId={classroomId} />
+            )}
+
             {/* Header with Refresh */}
             <div className="flex items-center justify-between px-2">
                 <div className="space-y-1">
@@ -717,6 +725,138 @@ function ClassroomInsightsView({ classroomId }: { classroomId: number }) {
                             <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Curriculum looks healthy. No major Concept blockers detected.</p>
                         </div>
                     )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function PersonalMentorView({ classroomId }: { classroomId: number }) {
+    const [personalData, setPersonalData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        setLoading(true);
+        fetch(`/api/analytics/personal?classroomId=${classroomId}`)
+            .then(res => res.json())
+            .then(d => {
+                setPersonalData(d);
+                setLoading(false);
+            });
+    }, [classroomId]);
+
+    if (loading) return (
+        <div className="bg-white/5 border border-white/10 rounded-[3rem] p-12 text-center">
+            <Loader2 className="w-10 h-10 text-blue-500 animate-spin mx-auto mb-4" />
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Consulting AI Learning Mentor...</p>
+        </div>
+    );
+
+    if (!personalData?.isEngaged) return (
+        <div className="bg-gradient-to-br from-blue-600/5 to-purple-600/5 border border-dashed border-white/10 rounded-[3rem] p-12 text-center space-y-4">
+            <Sparkles className="w-12 h-12 text-blue-500/30 mx-auto" />
+            <h3 className="text-xl font-black uppercase italic tracking-tight text-white/80">Unlock Your <span className="text-blue-500">AI Mentor</span></h3>
+            <p className="text-sm text-slate-500 max-w-md mx-auto leading-relaxed font-medium">
+                {personalData?.message || "Ask more doubts to unlock personalized AI Weak Topic Detection!"}
+            </p>
+        </div>
+    );
+
+    return (
+        <div className="space-y-8 animate-in slide-in-from-bottom-8 duration-1000">
+            {/* AI Learning Mentor Header */}
+            <div className="bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-blue-600/20 p-[1px] rounded-[3rem] shadow-2xl">
+                <div className="bg-slate-950/40 backdrop-blur-xl rounded-[2.9rem] p-6 md:p-10 flex flex-col md:flex-row items-center gap-8 overflow-hidden relative">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 blur-[100px] rounded-full -mr-32 -mt-32"></div>
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-600/10 blur-[100px] rounded-full -ml-32 -mb-32"></div>
+                    
+                    <div className="relative shrink-0">
+                        <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-[2rem] flex items-center justify-center shadow-2xl relative z-10 group">
+                            <Brain className="w-12 h-12 text-white group-hover:scale-110 transition-transform duration-500" />
+                        </div>
+                        <div className="absolute -top-4 -right-4 bg-emerald-500 text-white text-[8px] font-black uppercase px-3 py-1.5 rounded-full border-4 border-slate-950 shadow-xl z-20 animate-bounce">Live Mentor</div>
+                    </div>
+                    <div className="space-y-4 flex-1 text-center md:text-left relative z-10">
+                        <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full mb-2">
+                            <Sparkles className="w-3 h-3 text-blue-400" />
+                            <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Personalized Strategy</span>
+                        </div>
+                        <h3 className="text-3xl font-black uppercase italic tracking-tighter">Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Learning Mentor</span> Insight</h3>
+                        <p className="text-lg text-slate-300 font-medium leading-relaxed italic border-l-2 border-blue-500/30 pl-6 py-2">
+                           "{personalData.insight}"
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Weak Topics */}
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between px-2">
+                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 flex items-center gap-3">
+                            <Target className="w-4 h-4 text-red-500" /> Improvement Targets
+                        </h4>
+                        <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">High Priority</span>
+                    </div>
+                    <div className="grid gap-4">
+                        {personalData.weakTopics.map((topic: any, i: number) => (
+                            <div key={i} className="bg-white/5 border border-white/10 rounded-[2rem] p-6 hover:bg-white/[0.08] transition-all group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <div className="flex items-center justify-between mb-4 relative z-10">
+                                    <span className="text-xl font-black text-white italic tracking-tight">{topic.topic}</span>
+                                    <div className="flex flex-col items-end">
+                                        <span className={`text-[8px] font-black uppercase px-2 py-1 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20`}>
+                                            {topic.confidence} Strength Signal
+                                        </span>
+                                    </div>
+                                </div>
+                                <p className="text-sm text-slate-400 font-medium leading-relaxed relative z-10">
+                                    {topic.reason}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Recommendations */}
+                <div className="space-y-6">
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 px-2 flex items-center gap-3">
+                        <Zap className="w-4 h-4 text-emerald-500" /> Actionable Recommendations
+                    </h4>
+                    <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-[3rem] p-8 space-y-8 relative overflow-hidden group">
+                        <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-emerald-500/10 blur-[100px] rounded-full group-hover:bg-emerald-500/20 transition-all"></div>
+                        
+                        <div className="space-y-6 relative z-10">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/20">
+                                    <Zap className="w-4 h-4 text-emerald-500" />
+                                </div>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Quick Concept Refresh</p>
+                            </div>
+                            <p className="text-base text-slate-300 leading-relaxed font-bold italic">"{personalData.recommendations.conceptExplainer}"</p>
+                        </div>
+
+                        <div className="h-[1px] bg-emerald-500/10 w-full relative z-10" />
+
+                        <div className="space-y-6 relative z-10">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center border border-blue-500/20">
+                                    <Activity className="w-4 h-4 text-blue-500" />
+                                </div>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-blue-500">Recommended Challenges</p>
+                            </div>
+                            <div className="grid gap-3">
+                                {personalData.recommendations.practiceQuestions.map((q: string, i: number) => (
+                                    <div key={i} className="flex items-center gap-4 bg-slate-950/50 p-5 rounded-2xl border border-white/5 hover:border-emerald-500/30 transition-all cursor-default">
+                                        <div className="w-6 h-6 rounded-lg bg-emerald-600/20 flex items-center justify-center shrink-0">
+                                            <span className="text-[10px] font-black text-emerald-500">{i+1}</span>
+                                        </div>
+                                        <p className="text-sm text-slate-300 font-black tracking-tight">{q}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

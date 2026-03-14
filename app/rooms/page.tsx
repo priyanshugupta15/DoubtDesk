@@ -123,13 +123,13 @@ export default function RoomsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#020617] text-white p-6 md:p-12 relative overflow-hidden">
+        <div className="min-h-screen bg-[#020617] text-white p-4 md:p-8 relative overflow-hidden">
             {/* Background Orbs */}
             <div className="absolute top-0 left-0 w-[800px] h-[800px] bg-blue-600/5 blur-[150px] rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
             
             <div className="max-w-7xl mx-auto relative z-10">
                 {/* Header Section */}
-                <div className="sticky top-0 z-50 bg-[#020617]/80 backdrop-blur-xl -mx-6 md:-mx-12 px-6 md:px-12 py-8 mb-16 border-b border-white/5">
+                <div className="sticky top-0 z-50 bg-[#020617]/80 backdrop-blur-xl -mx-4 md:-mx-8 px-4 md:px-8 py-5 mb-8 border-b border-white/5">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                         <div className="space-y-4">
                             <div className="flex items-center gap-3">
@@ -167,7 +167,7 @@ export default function RoomsPage() {
                         <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
                     </div>
                 ) : rooms.length === 0 ? (
-                    <div className="bg-white/5 border border-white/10 rounded-[3rem] p-16 text-center space-y-6">
+                    <div className="bg-white/5 border border-white/10 rounded-[3rem] p-10 text-center space-y-4">
                         <div className="w-20 h-20 bg-blue-500/10 border border-blue-500/20 rounded-3xl flex items-center justify-center mx-auto mb-4">
                             <School className="w-10 h-10 text-blue-500" />
                         </div>
@@ -184,9 +184,9 @@ export default function RoomsPage() {
                         </button>
                     </div>
                 ) : (
-                    <div className="space-y-16">
+                    <div className="space-y-10">
                         {/* MY ROOMS */}
-                        <div className="space-y-8">
+                        <div className="space-y-6">
                             <h2 className="text-2xl font-black uppercase tracking-tight italic flex items-center gap-3">
                                 <Users className="w-6 h-6 text-blue-500" /> My Academic Circles
                             </h2>
@@ -199,7 +199,7 @@ export default function RoomsPage() {
 
                         {/* RECOMMENDED ROOMS */}
                         {recommended.length > 0 && (
-                            <div className="space-y-8 pt-8 border-t border-white/5">
+                            <div className="space-y-6 pt-6 border-t border-white/5">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-2xl font-black uppercase tracking-tight italic flex items-center gap-3">
                                         <Sparkles className="w-6 h-6 text-cyan-400" /> Recommended for {appUser?.year} at {appUser?.university}

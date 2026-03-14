@@ -40,8 +40,8 @@ export default function PublicRoomsPage() {
     }, [filter]);
 
     return (
-        <div className="p-6 md:p-12 space-y-8 max-w-[1000px] mx-auto pb-24">
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-white/5">
+        <div className="p-4 md:p-8 space-y-6 max-w-[1000px] mx-auto pb-24">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/5">
                 <div className="space-y-1">
                     <h1 className="text-6xl font-black text-white tracking-tighter uppercase italic">
                         Public<span className="text-blue-500"> Doubts</span>
@@ -116,13 +116,13 @@ export default function PublicRoomsPage() {
                     <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Syncing with community...</p>
                 </div>
             ) : doubts.length > 0 ? (
-                <div className="flex flex-col gap-8 lg:gap-10">
+                <div className="flex flex-col gap-6 lg:gap-8">
                     {doubts.map((doubt: any) => (
                         <DoubtCard key={doubt.id} doubt={doubt} onUpdate={fetchDoubts} />
                     ))}
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center py-32 border-2 border-dashed border-white/5 rounded-[3rem] bg-white/[0.02] text-center px-6">
+                <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-white/5 rounded-[3rem] bg-white/[0.02] text-center px-6">
                     <div className="w-20 h-20 bg-blue-600/10 rounded-3xl flex items-center justify-center mb-6">
                         <MessageSquare className="w-10 h-10 text-blue-500/50" />
                     </div>

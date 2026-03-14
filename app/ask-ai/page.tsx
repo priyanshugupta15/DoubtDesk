@@ -3,7 +3,8 @@
 import { useState, useRef } from 'react';
 import {
     Send, Zap, BookOpen, Lightbulb, Loader2, RefreshCcw,
-    ImagePlus, X, Type, Camera, ListOrdered, Brain, CheckCircle2, AlertCircle
+    ImagePlus, X, Type, Camera, ListOrdered, Brain, CheckCircle2, AlertCircle,
+    MessageSquare
 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import ReactMarkdown from 'react-markdown';
@@ -54,13 +55,20 @@ const EXAMPLE_PROMPTS = [
 export default function AskAIPage() {
     const [inputMode, setInputMode] = useState<InputMode>('text');
     const [prompt, setPrompt] = useState('');
+    const [followUpPrompt, setFollowUpPrompt] = useState('');
+    const [activeStepContext, setActiveStepContext] = useState<{ num: string, label: string } | null>(null);
     const [imageBase64, setImageBase64] = useState<string | null>(null);
-    const [response, setResponse] = useState<string | null>(null);
+    const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string, type?: SolveType }[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [currentType, setCurrentType] = useState<SolveType>('standard');
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const chatEndRef = useRef<HTMLDivElement>(null);
+
+    const scrollToBottom = () => {
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -70,30 +78,153 @@ export default function AskAIPage() {
         reader.readAsDataURL(file);
     };
 
-    const handleAskAI = async (type: SolveType = 'standard') => {
-        if (!prompt.trim() && !imageBase64) return;
+    const handleAskAI = async (type: SolveType = 'standard', isFollowUp: boolean = false) => {
+        const currentPrompt = isFollowUp ? followUpPrompt : prompt;
+        if (!currentPrompt.trim() && !imageBase64 && !isFollowUp) return;
+        
         setIsLoading(true);
-        setCurrentType(type);
+        if (!isFollowUp) {
+            setCurrentType(type);
+            setMessages([]); // Reset for new doubt
+        }
         setErrorMsg(null);
-        setResponse(null);
+
+        const newMessages = isFollowUp 
+            ? [...messages, { role: 'user' as const, content: currentPrompt }]
+            : [{ role: 'user' as const, content: currentPrompt }];
+
+        if (isFollowUp) {
+            setMessages(newMessages);
+            setFollowUpPrompt('');
+            // Small delay to allow state update before scroll
+            setTimeout(scrollToBottom, 100);
+        }
+
         try {
             const res = await fetch('/api/ask-ai', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt, type, imageBase64 })
+                body: JSON.stringify({ 
+                    prompt: currentPrompt, 
+                    type: isFollowUp ? 'standard' : type, 
+                    imageBase64: isFollowUp ? null : imageBase64,
+                    history: isFollowUp ? messages : []
+                })
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data?.error || "The AI couldn't process your request.");
-            setResponse(data.reply);
+            
+            setMessages(prev => [...prev, { role: 'assistant', content: data.reply, type: isFollowUp ? 'standard' : type }]);
+            setTimeout(scrollToBottom, 200);
         } catch (err: any) {
             setErrorMsg(err.message || "Something went wrong. Please try again.");
+            if (isFollowUp) {
+                setMessages(prev => prev.slice(0, -1)); // Remove the user message if it failed
+            }
         } finally {
             setIsLoading(false);
         }
     };
 
     const canSubmit = inputMode === 'text' ? prompt.trim().length > 0 : !!imageBase64;
-    const sections = response ? parseSections(response) : [];
+    const followUpInputRef = useRef<HTMLInputElement>(null);
+
+    const handleStepFollowUp = (stepNum: string, stepLabel: string) => {
+        setActiveStepContext({ num: stepNum, label: stepLabel });
+        setFollowUpPrompt(`Can you explain this step in more detail?`);
+        setTimeout(() => {
+            scrollToBottom();
+            followUpInputRef.current?.focus();
+        }, 100);
+    };
+
+    const markdownComponents: any = {
+        // Step labels: full-width block row with numbered pill + accent border
+        strong: ({ children }: any) => {
+            const text = String(children);
+            const isStepLabel = /^Step\s+\d+/i.test(text);
+            if (isStepLabel) {
+                const num = text.match(/\d+/)?.[0] || "";
+                const label = text.replace(/^Step\s+\d+\s*[–—-]\s*/i, '');
+                return (
+                    <span className="flex items-center gap-3 mt-7 mb-3 first:mt-0 group/step">
+                        <span className="flex items-center justify-center w-7 h-7 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 text-xs font-black shrink-0 shadow-sm">
+                            {num}
+                        </span>
+                        <span className="text-[15px] font-black text-white tracking-tight leading-tight">{label}</span>
+                        <button 
+                            onClick={() => handleStepFollowUp(num, label)}
+                            className="ml-auto opacity-0 group-hover/step:opacity-100 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-cyan-500/10 border border-white/5 hover:border-cyan-500/30 text-[10px] font-black text-slate-400 hover:text-cyan-400 transition-all uppercase tracking-wider"
+                        >
+                            <MessageSquare className="w-3 h-3" /> Ask about this
+                        </button>
+                    </span>
+                );
+            }
+            return <strong className="text-white font-bold">{children}</strong>;
+        },
+
+        // Paragraphs: left-aligned, proper spacing
+        p: ({ children }: any) => (
+            <p className="text-slate-300 leading-[1.9] font-medium my-3 text-[15px] pl-0">{children}</p>
+        ),
+
+        // List items
+        li: ({ children }: any) => (
+            <li className="text-slate-300 leading-relaxed font-medium my-1.5 text-[15px]">{children}</li>
+        ),
+
+        // Ordered list — indent cleanly
+        ol: ({ children }: any) => (
+            <ol className="list-decimal list-outside ml-6 mt-2 mb-4 space-y-2">{children}</ol>
+        ),
+
+        // Unordered list
+        ul: ({ children }: any) => (
+            <ul className="list-disc list-outside ml-6 mt-2 mb-4 space-y-2">{children}</ul>
+        ),
+
+        // Block math: left-aligned in a styled container
+        div: ({ className, children, ...props }: any) => {
+            if (className?.includes('math-display')) {
+                return (
+                    <div className="my-4 pl-4 border-l-2 border-cyan-500/40 bg-slate-950/50 rounded-r-xl py-4 pr-4 overflow-x-auto">
+                        <div className={className} {...props}>{children}</div>
+                    </div>
+                );
+            }
+            return <div className={className} {...props}>{children}</div>;
+        },
+
+        // Tables — beautifully styled
+        table: ({ children }: any) => (
+            <div className="my-5 overflow-x-auto rounded-2xl border border-white/8 shadow-lg">
+                <table className="w-full text-sm text-left">{children}</table>
+            </div>
+        ),
+        thead: ({ children }: any) => (
+            <thead className="bg-slate-800/80 border-b border-white/8">{children}</thead>
+        ),
+        tbody: ({ children }: any) => (
+            <tbody className="divide-y divide-white/5">{children}</tbody>
+        ),
+        tr: ({ children }: any) => (
+            <tr className="hover:bg-white/3 transition-colors">{children}</tr>
+        ),
+        th: ({ children }: any) => (
+            <th className="px-4 py-3 text-xs font-black text-slate-300 uppercase tracking-widest whitespace-nowrap">{children}</th>
+        ),
+        td: ({ children }: any) => (
+            <td className="px-4 py-3 text-slate-300 font-medium text-[14px] [&_.katex]:text-slate-100">{children}</td>
+        ),
+
+        // Blockquote — highlighted note
+        blockquote: ({ children }: any) => (
+            <blockquote className="my-4 pl-4 border-l-4 border-yellow-500/50 bg-yellow-500/5 rounded-r-xl py-3 pr-4 text-yellow-200/80 italic text-[14px]">
+                {children}
+            </blockquote>
+        ),
+    };
 
     return (
         <div className="flex h-screen bg-[#020617] text-white overflow-hidden">
@@ -111,7 +242,7 @@ export default function AskAIPage() {
                     <span className="font-bold text-white">Ask AI Solver</span>
                 </header>
 
-                <div className="max-w-[900px] mx-auto w-full px-4 sm:px-8 py-10 pb-8 space-y-8">
+                <div className="max-w-[900px] mx-auto w-full px-4 sm:px-8 py-8 pb-6 space-y-6">
 
                     {/* ── Page Header ── */}
                     <div className="space-y-3">
@@ -244,148 +375,135 @@ export default function AskAIPage() {
                         </div>
                     )}
 
-                    {/* ── Skeleton Loader ── */}
-                    {isLoading && (
-                        <div className="space-y-4">
-                            {[...Array(3)].map((_, i) => (
-                                <div key={i} className="bg-slate-900/60 border border-white/5 rounded-3xl p-6 space-y-3 animate-pulse">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-xl bg-white/5" />
-                                        <div className="h-4 w-40 rounded bg-white/5" />
-                                    </div>
-                                    <div className="space-y-2 pl-11">
-                                        <div className="h-3 rounded bg-white/5 w-full" />
-                                        <div className="h-3 rounded bg-white/5 w-5/6" />
-                                        <div className="h-3 rounded bg-white/5 w-4/6" />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                    {/* ── Answer Sections & Chat ── */}
+                    {messages.length > 0 && (
+                        <div className="space-y-6 pb-24">
+                            {messages.map((msg, msgIdx) => {
+                                if (msg.role === 'user' && msgIdx > 0) {
+                                    // Render follow-up user message
+                                    return (
+                                        <div key={msgIdx} className="flex justify-end animate-in slide-in-from-right-4 duration-300">
+                                            <div className="max-w-[80%] bg-cyan-600 text-white px-5 py-3 rounded-2xl rounded-tr-none shadow-lg text-sm font-medium">
+                                                {msg.content}
+                                            </div>
+                                        </div>
+                                    );
+                                }
 
-                    {/* ── Answer Sections ── */}
-                    {!isLoading && sections.length > 0 && (
-                        <div className="space-y-4 animate-in slide-in-from-bottom-6 fade-in-0 duration-500">
-                            {sections.map((sec, idx) => {
-                                const meta = SECTION_META[sec.title];
-                                return (
-                                    <div
-                                        key={idx}
-                                        className="bg-slate-900/60 border border-white/8 rounded-3xl overflow-hidden shadow-lg"
-                                    >
-                                        {/* Section Header */}
-                                        <div className={`flex items-center gap-3 px-6 py-4 border-b border-white/5 ${meta ? '' : 'bg-white/3'}`}>
-                                            {meta && (
-                                                <div className={`flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br ${meta.color} bg-opacity-10 border ${meta.badge} shadow`}>
-                                                    {meta.icon}
+                                if (msg.role === 'assistant') {
+                                    const sections = parseSections(msg.content);
+                                    const isInitial = msgIdx === 1; // 0 is user, 1 is first assistant reply
+
+                                    return (
+                                        <div key={msgIdx} className={`space-y-4 animate-in fade-in duration-500 ${msgIdx > 1 ? 'slide-in-from-left-4' : 'slide-in-from-bottom-6'}`}>
+                                            {sections.length > 0 ? (
+                                                sections.map((sec, idx) => {
+                                                    const meta = SECTION_META[sec.title];
+                                                    return (
+                                                        <div
+                                                            key={`${msgIdx}-${idx}`}
+                                                            className="bg-slate-900/60 border border-white/8 rounded-3xl overflow-hidden shadow-lg"
+                                                        >
+                                                            <div className={`flex items-center gap-3 px-6 py-4 border-b border-white/5 ${meta ? '' : 'bg-white/3'}`}>
+                                                                {meta && (
+                                                                    <div className={`flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br ${meta.color} bg-opacity-10 border ${meta.badge} shadow`}>
+                                                                        {meta.icon}
+                                                                    </div>
+                                                                )}
+                                                                <h2 className="text-white font-black tracking-tight text-base">{sec.title || `Section ${idx + 1}`}</h2>
+                                                                {meta && (
+                                                                    <span className={`ml-auto text-[10px] font-black px-2.5 py-1 rounded-full border uppercase tracking-widest ${meta.badge}`}>
+                                                                        {idx === 0 ? 'Step-by-step' : idx === 1 ? 'Simplified' : 'Answer'}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="px-6 py-6">
+                                                                <ReactMarkdown
+                                                                    remarkPlugins={[remarkMath, remarkGfm]}
+                                                                    rehypePlugins={[rehypeKatex]}
+                                                                    components={markdownComponents}
+                                                                >
+                                                                    {sec.content}
+                                                                </ReactMarkdown>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })
+                                            ) : (
+                                                // Non-structured (follow-up) response
+                                                <div className="bg-slate-900/60 border border-white/8 rounded-3xl overflow-hidden shadow-lg p-6">
+                                                    <ReactMarkdown
+                                                        remarkPlugins={[remarkMath, remarkGfm]}
+                                                        rehypePlugins={[rehypeKatex]}
+                                                        components={markdownComponents}
+                                                    >
+                                                        {msg.content}
+                                                    </ReactMarkdown>
                                                 </div>
                                             )}
-                                            <h2 className="text-white font-black tracking-tight text-base">{sec.title || `Section ${idx + 1}`}</h2>
-                                            {meta && (
-                                                <span className={`ml-auto text-[10px] font-black px-2.5 py-1 rounded-full border uppercase tracking-widest ${meta.badge}`}>
-                                                    {idx === 0 ? 'Step-by-step' : idx === 1 ? 'Simplified' : 'Answer'}
-                                                </span>
-                                            )}
                                         </div>
-
-                                        {/* Section Body */}
-                                        <div className="px-6 py-6">
-                                            <ReactMarkdown
-                                                remarkPlugins={[remarkMath, remarkGfm]}
-                                                rehypePlugins={[rehypeKatex]}
-                                                components={{
-                                                    // Step labels: full-width block row with numbered pill + accent border
-                                                    strong: ({ children }) => {
-                                                        const text = String(children);
-                                                        const isStepLabel = /^Step\s+\d+/i.test(text);
-                                                        if (isStepLabel) {
-                                                            const num = text.match(/\d+/)?.[0];
-                                                            const label = text.replace(/^Step\s+\d+\s*[–—-]\s*/i, '');
-                                                            return (
-                                                                <span className="flex items-center gap-3 mt-7 mb-3 first:mt-0">
-                                                                    <span className="flex items-center justify-center w-7 h-7 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 text-xs font-black shrink-0 shadow-sm">
-                                                                        {num}
-                                                                    </span>
-                                                                    <span className="text-[15px] font-black text-white tracking-tight leading-tight">{label}</span>
-                                                                </span>
-                                                            );
-                                                        }
-                                                        return <strong className="text-white font-bold">{children}</strong>;
-                                                    },
-
-                                                    // Paragraphs: left-aligned, proper spacing
-                                                    p: ({ children }) => (
-                                                        <p className="text-slate-300 leading-[1.9] font-medium my-3 text-[15px] pl-0">{children}</p>
-                                                    ),
-
-                                                    // List items
-                                                    li: ({ children }) => (
-                                                        <li className="text-slate-300 leading-relaxed font-medium my-1.5 text-[15px]">{children}</li>
-                                                    ),
-
-                                                    // Ordered list — indent cleanly
-                                                    ol: ({ children }) => (
-                                                        <ol className="list-decimal list-outside ml-6 mt-2 mb-4 space-y-2">{children}</ol>
-                                                    ),
-
-                                                    // Unordered list
-                                                    ul: ({ children }) => (
-                                                        <ul className="list-disc list-outside ml-6 mt-2 mb-4 space-y-2">{children}</ul>
-                                                    ),
-
-                                                    // Block math: left-aligned in a styled container
-                                                    div: ({ className, children, ...props }: any) => {
-                                                        if (className?.includes('math-display')) {
-                                                            return (
-                                                                <div className="my-4 pl-4 border-l-2 border-cyan-500/40 bg-slate-950/50 rounded-r-xl py-4 pr-4 overflow-x-auto">
-                                                                    <div className={className} {...props}>{children}</div>
-                                                                </div>
-                                                            );
-                                                        }
-                                                        return <div className={className} {...props}>{children}</div>;
-                                                    },
-
-                                                    // Tables — beautifully styled
-                                                    table: ({ children }) => (
-                                                        <div className="my-5 overflow-x-auto rounded-2xl border border-white/8 shadow-lg">
-                                                            <table className="w-full text-sm text-left">{children}</table>
-                                                        </div>
-                                                    ),
-                                                    thead: ({ children }) => (
-                                                        <thead className="bg-slate-800/80 border-b border-white/8">{children}</thead>
-                                                    ),
-                                                    tbody: ({ children }) => (
-                                                        <tbody className="divide-y divide-white/5">{children}</tbody>
-                                                    ),
-                                                    tr: ({ children }) => (
-                                                        <tr className="hover:bg-white/3 transition-colors">{children}</tr>
-                                                    ),
-                                                    th: ({ children }) => (
-                                                        <th className="px-4 py-3 text-xs font-black text-slate-300 uppercase tracking-widest whitespace-nowrap">{children}</th>
-                                                    ),
-                                                    td: ({ children }) => (
-                                                        <td className="px-4 py-3 text-slate-300 font-medium text-[14px] [&_.katex]:text-slate-100">{children}</td>
-                                                    ),
-
-                                                    // Blockquote — highlighted note
-                                                    blockquote: ({ children }) => (
-                                                        <blockquote className="my-4 pl-4 border-l-4 border-yellow-500/50 bg-yellow-500/5 rounded-r-xl py-3 pr-4 text-yellow-200/80 italic text-[14px]">
-                                                            {children}
-                                                        </blockquote>
-                                                    ),
-
-                                                }}
-                                            >
-                                                {sec.content}
-                                            </ReactMarkdown>
-                                        </div>
-                                    </div>
-                                );
+                                    );
+                                }
+                                return null;
                             })}
 
+                            <div ref={chatEndRef} />
 
-                            {/* ── Extra Options ── */}
-                            {currentType === 'standard' && (
+                            {/* ── Follow-up Input ── */}
+                            {!isLoading && (
+                                <div className="bg-slate-900/60 border border-t-[3px] border-t-cyan-500/30 border-white/8 rounded-3xl p-4 shadow-2xl sticky bottom-4 z-10 backdrop-blur-xl transition-all">
+                                    {activeStepContext && (
+                                        <div className="flex items-center gap-2 mb-3 px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 w-fit animate-in slide-in-from-left-2 duration-300">
+                                            <div className="w-5 h-5 rounded-full bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-[10px] font-black text-cyan-400">
+                                                {activeStepContext.num}
+                                            </div>
+                                            <span className="text-[11px] font-bold text-cyan-400/80 uppercase tracking-wider">Discussing: {activeStepContext.label}</span>
+                                            <button 
+                                                onClick={() => { setActiveStepContext(null); setFollowUpPrompt(''); }}
+                                                className="ml-2 hover:bg-white/5 p-1 rounded-md transition-colors"
+                                            >
+                                                <X className="w-3 h-3 text-slate-500" />
+                                            </button>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex-1 relative">
+                                            <input
+                                                ref={followUpInputRef}
+                                                type="text"
+                                                value={followUpPrompt}
+                                                onChange={(e) => setFollowUpPrompt(e.target.value)}
+                                                onKeyDown={(e) => { if (e.key === 'Enter') handleAskAI('standard', true); }}
+                                                placeholder={activeStepContext ? "Ask about this step..." : "Ask a follow-up about any step..."}
+                                                className="w-full bg-slate-950/60 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 transition-all font-medium"
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={() => handleAskAI('standard', true)}
+                                            disabled={!followUpPrompt.trim()}
+                                            className="p-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl shadow-lg shadow-cyan-500/20 transition-all disabled:opacity-40"
+                                        >
+                                            <Send className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                    <p className="text-[10px] text-slate-500 mt-2 ml-1">AI remembers previous steps. Ask things like "Can you explain Step 2 more?"</p>
+                                </div>
+                            )}
+
+                            {/* ── Skeleton for follow-ups ── */}
+                            {isLoading && (
+                                <div className="flex items-start gap-4 animate-pulse">
+                                    <div className="w-10 h-10 rounded-full bg-white/5 shrink-0" />
+                                    <div className="space-y-2 flex-1 pt-2">
+                                        <div className="h-3 bg-white/5 rounded w-full" />
+                                        <div className="h-3 bg-white/5 rounded w-5/6" />
+                                        <div className="h-3 bg-white/5 rounded w-4/6" />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* ── Extra Options (Only after first response) ── */}
+                            {!isLoading && messages.length === 2 && currentType === 'standard' && (
                                 <div className="bg-slate-900/40 border border-white/5 rounded-2xl px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                                     <div>
                                         <p className="text-white font-bold text-sm">Need a different take?</p>
@@ -394,14 +512,12 @@ export default function AskAIPage() {
                                     <div className="flex gap-3 sm:ml-auto flex-wrap">
                                         <button
                                             onClick={() => handleAskAI('simple')}
-                                            disabled={isLoading}
                                             className="flex items-center gap-2 px-4 py-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 rounded-xl border border-yellow-500/20 hover:border-yellow-500/40 transition-all text-xs font-bold uppercase tracking-wider"
                                         >
                                             <Lightbulb className="w-3.5 h-3.5" /> Explain Simply
                                         </button>
                                         <button
                                             onClick={() => handleAskAI('exam')}
-                                            disabled={isLoading}
                                             className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded-xl border border-purple-500/20 hover:border-purple-500/40 transition-all text-xs font-bold uppercase tracking-wider"
                                         >
                                             <BookOpen className="w-3.5 h-3.5" /> Exam-Ready
@@ -409,24 +525,12 @@ export default function AskAIPage() {
                                     </div>
                                 </div>
                             )}
-
-                            {currentType !== 'standard' && (
-                                <div className="flex justify-end">
-                                    <button
-                                        onClick={() => handleAskAI('standard')}
-                                        disabled={isLoading}
-                                        className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-xl border border-white/5 transition-all text-xs font-bold uppercase tracking-wider"
-                                    >
-                                        <RefreshCcw className="w-3.5 h-3.5" /> Back to Standard
-                                    </button>
-                                </div>
-                            )}
                         </div>
                     )}
 
                     {/* ── Empty / Welcome State ── */}
-                    {!isLoading && !response && !errorMsg && (
-                        <div className="text-center py-16 space-y-4">
+                    {messages.length === 0 && !isLoading && !errorMsg && (
+                        <div className="text-center py-10 space-y-3">
                             <div className="w-20 h-20 mx-auto bg-gradient-to-br from-cyan-500/20 to-blue-600/20 rounded-3xl flex items-center justify-center border border-cyan-500/20 shadow-2xl shadow-cyan-500/10">
                                 <Zap className="w-9 h-9 text-cyan-400" />
                             </div>

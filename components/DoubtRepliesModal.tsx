@@ -389,45 +389,47 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
                     </button>
                 </div>
 
-                {/* Tab Navigation */}
-                <div className="px-8 border-b border-white/5 flex gap-8 h-14 bg-white/[0.01]">
-                    <button 
-                        onClick={() => setActiveTab('all')}
-                        className={`relative flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
-                            activeTab === 'all' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'
-                        }`}
-                    >
-                        All Chat
-                        <span className={`px-1.5 py-0.5 rounded-md text-[8px] bg-white/5 ${activeTab === 'all' ? 'text-blue-500 bg-blue-500/10' : 'text-slate-600'}`}>
-                            {replies.length}
-                        </span>
-                        {activeTab === 'all' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 animate-in fade-in slide-in-from-bottom-1" />}
-                    </button>
-                    <button 
-                        onClick={() => setActiveTab('chat')}
-                        className={`relative flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
-                            activeTab === 'chat' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'
-                        }`}
-                    >
-                        General Chat
-                        <span className={`px-1.5 py-0.5 rounded-md text-[8px] bg-white/5 ${activeTab === 'chat' ? 'text-blue-500 bg-blue-500/10' : 'text-slate-600'}`}>
-                            {replies.filter(r => r.type === 'comment').length}
-                        </span>
-                        {activeTab === 'chat' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 animate-in fade-in slide-in-from-bottom-1" />}
-                    </button>
-                    <button 
-                        onClick={() => setActiveTab('solutions')}
-                        className={`relative flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
-                            activeTab === 'solutions' ? 'text-emerald-500' : 'text-slate-500 hover:text-slate-300'
-                        }`}
-                    >
-                        All Solutions
-                        <span className={`px-1.5 py-0.5 rounded-md text-[8px] bg-white/5 ${activeTab === 'solutions' ? 'text-emerald-500 bg-emerald-500/10' : 'text-slate-600'}`}>
-                            {replies.filter(r => r.type === 'solution').length}
-                        </span>
-                        {activeTab === 'solutions' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500 animate-in fade-in slide-in-from-bottom-1" />}
-                    </button>
-                </div>
+                {/* Tab Navigation - Hidden for 'Ask Teacher' Doubts */}
+                {doubt.type !== 'teacher' && (
+                    <div className="px-8 border-b border-white/5 flex gap-8 h-14 bg-white/[0.01]">
+                        <button 
+                            onClick={() => setActiveTab('all')}
+                            className={`relative flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                                activeTab === 'all' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'
+                            }`}
+                        >
+                            All Chat
+                            <span className={`px-1.5 py-0.5 rounded-md text-[8px] bg-white/5 ${activeTab === 'all' ? 'text-blue-500 bg-blue-500/10' : 'text-slate-600'}`}>
+                                {replies.length}
+                            </span>
+                            {activeTab === 'all' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 animate-in fade-in slide-in-from-bottom-1" />}
+                        </button>
+                        <button 
+                            onClick={() => setActiveTab('chat')}
+                            className={`relative flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                                activeTab === 'chat' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'
+                            }`}
+                        >
+                            General Chat
+                            <span className={`px-1.5 py-0.5 rounded-md text-[8px] bg-white/5 ${activeTab === 'chat' ? 'text-blue-500 bg-blue-500/10' : 'text-slate-600'}`}>
+                                {replies.filter(r => r.type === 'comment').length}
+                            </span>
+                            {activeTab === 'chat' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 animate-in fade-in slide-in-from-bottom-1" />}
+                        </button>
+                        <button 
+                            onClick={() => setActiveTab('solutions')}
+                            className={`relative flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                                activeTab === 'solutions' ? 'text-emerald-500' : 'text-slate-500 hover:text-slate-300'
+                            }`}
+                        >
+                            All Solutions
+                            <span className={`px-1.5 py-0.5 rounded-md text-[8px] bg-white/5 ${activeTab === 'solutions' ? 'text-emerald-500 bg-emerald-500/10' : 'text-slate-600'}`}>
+                                {replies.filter(r => r.type === 'solution').length}
+                            </span>
+                            {activeTab === 'solutions' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500 animate-in fade-in slide-in-from-bottom-1" />}
+                        </button>
+                    </div>
+                )}
 
                 {/* Messages Area */}
                 <div className="flex-1 overflow-y-auto p-8 space-y-6 bg-slate-900/50">
@@ -509,7 +511,7 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
                 </div>
 
                 {/* Hybrid Input Area */}
-                {(doubt.type !== 'teacher' || isTeacher) && (
+                {(doubt.type !== 'teacher' || isTeacher || isDoubtOwner) && (
                     <div className="p-8 bg-white/[0.02] border-t border-white/5 solution-form-area">
                     {showSolutionForm ? (
                         <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500 bg-white/[0.03] p-8 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-y-auto max-h-[60vh] group/form custom-scrollbar">
@@ -612,7 +614,7 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
                         </div>
                     ) : (
                         <div className="flex items-center gap-4">
-                            {doubt.isSolved !== "solved" && (
+                            {(doubt.isSolved !== "solved" && (doubt.type !== 'teacher' || isTeacher)) && (
                                 <button 
                                     onClick={() => setShowSolutionForm(true)}
                                     className="px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl transition-all group flex items-center gap-2 active:scale-95 shrink-0 shadow-lg shadow-emerald-600/20"
