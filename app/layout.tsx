@@ -1,0 +1,51 @@
+import type { Metadata } from "next";
+import { Geist, Geist_Mono, DM_Sans } from "next/font/google";
+import "./globals.css";
+import {
+  ClerkProvider,
+} from '@clerk/nextjs'
+import { Provider } from "./provider";
+
+
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+
+const AppFont = DM_Sans({
+  weight: ['400', '500', '700'],
+  subsets: ['latin'],
+  variable: '--font-app',
+})
+export const metadata: Metadata = {
+  title: "DoubtDesk - AI Career Coach",
+  description: "DoubtDesk is your personal AI career wingman. From resume analysis to custom learning roadmaps, we provide the tools you need to level up your professional life.",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <ClerkProvider>
+      <html lang="en">
+        <body
+          className={AppFont.className}
+        >
+          <Provider>
+            {children}
+
+          </Provider>
+        </body>
+      </html>
+    </ClerkProvider>
+  );
+}
