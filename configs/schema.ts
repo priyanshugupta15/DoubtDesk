@@ -9,6 +9,10 @@ export const usersTable = pgTable("users", {
     collegeEmail: varchar({ length: 255 }),
     role: varchar({ length: 20 }), // 'student', 'teacher', 'admin'
     onboarded: boolean().default(false),
+    violationCount: integer().default(0).notNull(),
+    isBlocked: boolean().default(false).notNull(),
+    blockedUntil: timestamp(),
+    blockCount: integer().default(0).notNull(),
     createdAt: timestamp().defaultNow().notNull(),
 });
 
@@ -122,5 +126,16 @@ export const repliesTable = pgTable("replies", {
     type: varchar({ length: 20 }).notNull(), // 'comment' or 'solution'
     content: text(),
     imageUrl: text(),
+    createdAt: timestamp().defaultNow().notNull(),
+}, (table) => ({
+    doubtIdIndex: index("doubtId_idx").on(table.doubtId),
+}));
+
+export const moderationLogsTable = pgTable("moderation_logs", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userEmail: varchar({ length: 255 }).notNull(),
+    reason: text().notNull(),
+    violationType: varchar({ length: 50 }).notNull(), // 'abusive', 'off-topic', etc.
+    contentSnippet: text(),
     createdAt: timestamp().defaultNow().notNull(),
 });

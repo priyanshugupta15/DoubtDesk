@@ -3,6 +3,7 @@ import { db } from '@/configs/db';
 import { classroomsTable, membershipsTable, usersTable } from '@/configs/schema';
 import { eq, and } from 'drizzle-orm';
 import { currentUser } from '@clerk/nextjs/server';
+import { checkUserBlock } from '@/lib/auth-utils';
 
 export async function POST(req: Request) {
     try {
@@ -12,6 +13,11 @@ export async function POST(req: Request) {
         }
 
         const email = user.primaryEmailAddress.emailAddress;
+
+        // 0. Check if user is blocked
+        const { isBlocked, errorResponse } = await checkUserBlock(email);
+        if (isBlocked) return errorResponse;
+
         const { inviteCode } = await req.json();
 
         if (!inviteCode) {

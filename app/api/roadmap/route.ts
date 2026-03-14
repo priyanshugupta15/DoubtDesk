@@ -3,6 +3,7 @@ import axios from "axios";
 import { db } from "@/configs/db";
 import { roadmapsTable } from "@/configs/schema";
 import { currentUser } from "@clerk/nextjs/server";
+import { checkUserBlock } from "@/lib/auth-utils";
 
 export async function POST(req: NextRequest) {
     try {
@@ -12,6 +13,10 @@ export async function POST(req: NextRequest) {
         if (!userEmail) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+
+        // 0. Check if user is blocked
+        const { isBlocked, errorResponse } = await checkUserBlock(userEmail);
+        if (isBlocked) return errorResponse;
 
         const { targetField, timeline, currentLevel, weeklyCommitment } = await req.json();
 

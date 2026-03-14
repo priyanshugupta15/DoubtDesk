@@ -3,6 +3,7 @@ import { db } from "@/configs/db";
 import { roadmapsTable } from "@/configs/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq, desc, and } from "drizzle-orm";
+import { checkUserBlock } from "@/lib/auth-utils";
 
 export async function GET(req: NextRequest) {
     try {
@@ -12,6 +13,10 @@ export async function GET(req: NextRequest) {
         if (!userEmail) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+
+        // 0. Check if user is blocked
+        const { isBlocked, errorResponse } = await checkUserBlock(userEmail);
+        if (isBlocked) return errorResponse;
 
         const history = await db.select()
             .from(roadmapsTable)
@@ -27,11 +32,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json(parsedHistory);
 
     } catch (error: any) {
-        console.error("Fetch History Error DETAILS:", {
-            message: error.message,
-            stack: error.stack,
-            cause: error.cause
-        });
+        console.error("Fetch History Error:", error.message);
         return NextResponse.json({
             error: "Failed to fetch roadmap history",
             details: error.message
@@ -47,6 +48,10 @@ export async function DELETE(req: NextRequest) {
         if (!userEmail) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+
+        // 0. Check if user is blocked
+        const { isBlocked, errorResponse } = await checkUserBlock(userEmail);
+        if (isBlocked) return errorResponse;
 
         const { searchParams } = new URL(req.url);
         const id = searchParams.get("id");

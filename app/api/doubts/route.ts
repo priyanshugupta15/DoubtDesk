@@ -1,8 +1,10 @@
 import { db } from "@/configs/db";
-import { doubtsTable, likesTable, repliesTable, membershipsTable, classroomsTable } from "@/configs/schema";
-import { and, eq, desc, isNull, or, not } from "drizzle-orm";
+import { doubtsTable, likesTable, repliesTable, membershipsTable, classroomsTable, usersTable, moderationLogsTable } from "@/configs/schema";
+import { eq, and, desc, isNull, or, not, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { moderateContent } from "@/lib/moderation";
+import { sendWarningEmail, sendBlockEmail } from "@/lib/email";
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
@@ -110,15 +112,80 @@ export async function POST(req: Request) {
         if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         
         const email = user.primaryEmailAddress?.emailAddress;
+        if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
+
+        // 0. Check if user is blocked
+        const [dbUser] = await db.select().from(usersTable).where(eq(usersTable.email, email));
+        if (dbUser?.blockedUntil && new Date(dbUser.blockedUntil) > new Date()) {
+            const unlockDate = new Date(dbUser.blockedUntil).toDateString();
+            return NextResponse.json({ 
+                error: `Your account is temporarily blocked due to safety violations. Access will be restored on ${unlockDate}.` 
+            }, { status: 403 });
+        }
+
         const { userName, subject, content, imageUrl, classroomId, type = 'community' } = await req.json();
 
         if (!userName || !subject || (!content?.trim() && !imageUrl)) {
             return NextResponse.json({ error: "Missing required fields (provide text or image)" }, { status: 400 });
         }
 
+        // 1. AI Moderation Check
+        if (content) {
+            const moderation = await moderateContent(content);
+            if (!moderation.isAllowed) {
+                // Increment strikes
+                const newViolationCount = (dbUser?.violationCount || 0) + 1;
+                const isThirdViolation = newViolationCount >= 3;
+                let blockedUntil: Date | null = null;
+                let newBlockCount = dbUser?.blockCount || 0;
+
+                if (isThirdViolation) {
+                    newBlockCount += 1;
+                    // Duration: 3 days (1), 1 week (2), 2 weeks (3), etc.
+                    let durationDays = 3;
+                    if (newBlockCount === 2) durationDays = 7;
+                    else if (newBlockCount >= 3) durationDays = 14 * Math.pow(2, newBlockCount - 3);
+
+                    blockedUntil = new Date();
+                    blockedUntil.setDate(blockedUntil.getDate() + durationDays);
+                    
+                    // Send Block Email
+                    await sendBlockEmail(email, durationDays, newBlockCount);
+                }
+
+                await db.update(usersTable)
+                    .set({ 
+                        violationCount: newViolationCount,
+                        isBlocked: isThirdViolation, // Keep for legacy compatibility if needed
+                        blockedUntil: blockedUntil,
+                        blockCount: newBlockCount
+                    })
+                    .where(eq(usersTable.email, email));
+
+                // Log violation
+                await db.insert(moderationLogsTable).values({
+                    userEmail: email,
+                    reason: moderation.reason,
+                    violationType: moderation.violationType || 'other',
+                    contentSnippet: content.substring(0, 100)
+                });
+
+                // Send Email Warning (Simulation)
+                await sendWarningEmail(email, moderation.reason, newViolationCount);
+
+                let errorMessage = `Content flagged: ${moderation.reason}. This is strike ${newViolationCount}/3. Please stick to academic topics.`;
+                if (isThirdViolation && blockedUntil) {
+                    const unlockDate = blockedUntil.toDateString();
+                    errorMessage = `Content flagged. Your account is now blocked for ${newBlockCount > 1 ? 'additional ' : ''}violations. Access restored on ${unlockDate}.`;
+                }
+
+                return NextResponse.json({ error: errorMessage }, { status: 400 });
+            }
+        }
+
         const newDoubt = await db.insert(doubtsTable).values({
             userName,
-            userEmail: email || null,
+            userEmail: email,
             subject,
             content,
             imageUrl,
@@ -127,8 +194,8 @@ export async function POST(req: Request) {
         }).returning();
 
         return NextResponse.json(newDoubt[0]);
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error saving doubt:", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        return NextResponse.json({ error: error?.message || "Internal Server Error" }, { status: 500 });
     }
 }

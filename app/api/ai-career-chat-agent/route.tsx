@@ -1,8 +1,18 @@
 import axios from "axios";
 import { NextResponse } from "next/server";
+import { currentUser } from "@clerk/nextjs/server";
+import { checkUserBlock } from "@/lib/auth-utils";
 
 export async function POST(req: any) {
     try {
+        const user = await currentUser();
+        const email = user?.primaryEmailAddress?.emailAddress;
+
+        if (email) {
+            const { isBlocked, errorResponse } = await checkUserBlock(email);
+            if (isBlocked) return errorResponse;
+        }
+
         const body = await req.json();
         const userInput = body.userInput;
 

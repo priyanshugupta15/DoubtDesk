@@ -3,6 +3,7 @@ import { db } from '@/configs/db';
 import { membershipsTable } from '@/configs/schema';
 import { eq, and } from 'drizzle-orm';
 import { currentUser } from '@clerk/nextjs/server';
+import { checkUserBlock } from '@/lib/auth-utils';
 
 export async function GET(req: Request) {
     try {
@@ -12,6 +13,10 @@ export async function GET(req: Request) {
         }
 
         const email = user.primaryEmailAddress.emailAddress;
+
+        // 0. Check if user is blocked
+        const { isBlocked, errorResponse } = await checkUserBlock(email);
+        if (isBlocked) return errorResponse;
         const { searchParams } = new URL(req.url);
         const classroomIdStr = searchParams.get("classroomId");
         

@@ -115,9 +115,12 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
                 }
                 if (onReplyChange) onReplyChange();
                 toast.success(editingId ? "Solution updated!" : (type === 'solution' ? "Solution posted!" : "Chat sent."));
+            } else {
+                const data = await res.json();
+                toast.error(data.error || "Failed to post.");
             }
         } catch (error) {
-            toast.error("Failed to post.");
+            toast.error("An unexpected error occurred.");
         } finally {
             setIsPosting(false);
         }
@@ -154,9 +157,12 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
                 setFileName("");
                 setShowSolutionForm(false);
                 toast.success("Solution updated!");
+            } else {
+                const data = await res.json();
+                toast.error(data.error || "Failed to update solution.");
             }
         } catch (error) {
-            toast.error("Failed to update solution.");
+            toast.error("An unexpected error occurred.");
         } finally {
             setIsPosting(false);
         }

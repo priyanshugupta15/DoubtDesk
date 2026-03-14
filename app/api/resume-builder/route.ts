@@ -3,6 +3,7 @@ import { db } from "@/configs/db";
 import { resumesTable } from "@/configs/schema";
 import { eq, and } from "drizzle-orm";
 import { currentUser } from "@clerk/nextjs/server";
+import { checkUserBlock } from "@/lib/auth-utils";
 
 export async function POST(req: NextRequest) {
     try {
@@ -15,6 +16,10 @@ export async function POST(req: NextRequest) {
         if (!userEmail) {
             return NextResponse.json({ error: "User email not found" }, { status: 400 });
         }
+
+        // 0. Check if user is blocked
+        const { isBlocked, errorResponse } = await checkUserBlock(userEmail);
+        if (isBlocked) return errorResponse;
 
         const { id, resumeName, resumeData } = await req.json();
 
@@ -53,7 +58,6 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
     try {
         const user = await currentUser();
-        console.log("Resume GET User:", user?.id);
         if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
@@ -62,6 +66,10 @@ export async function GET(req: NextRequest) {
         if (!userEmail) {
             return NextResponse.json({ error: "User email not found" }, { status: 400 });
         }
+
+        // 0. Check if user is blocked
+        const { isBlocked, errorResponse } = await checkUserBlock(userEmail);
+        if (isBlocked) return errorResponse;
 
         const { searchParams } = new URL(req.url);
         const id = searchParams.get("id");
@@ -104,7 +112,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json(resumes);
     } catch (error: any) {
         console.error("Resume Fetch Error:", error);
-        return NextResponse.json({ error: error.message, stack: error.stack }, { status: 500 });
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
 
@@ -119,6 +127,10 @@ export async function DELETE(req: NextRequest) {
         if (!userEmail) {
             return NextResponse.json({ error: "User email not found" }, { status: 400 });
         }
+
+        // 0. Check if user is blocked
+        const { isBlocked, errorResponse } = await checkUserBlock(userEmail);
+        if (isBlocked) return errorResponse;
 
         const { searchParams } = new URL(req.url);
         const id = searchParams.get("id");

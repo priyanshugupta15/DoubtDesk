@@ -3,6 +3,7 @@ import { db } from "@/configs/db";
 import { resumeAnalysisTable } from "@/configs/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq, desc, and } from "drizzle-orm";
+import { checkUserBlock } from "@/lib/auth-utils";
 
 export async function GET(req: NextRequest) {
     try {

@@ -4,6 +4,7 @@ import { createRequire } from "module";
 import { db } from "@/configs/db";
 import { resumeAnalysisTable } from "@/configs/schema";
 import { currentUser } from "@clerk/nextjs/server";
+import { checkUserBlock } from "@/lib/auth-utils";
 
 const require = createRequire(import.meta.url);
 const pdf = require("pdf-parse-fork");
@@ -19,6 +20,14 @@ export async function POST(req: NextRequest) {
 
         if (!file) {
             return NextResponse.json({ error: "Resume file is required" }, { status: 400 });
+        }
+
+        const user = await currentUser();
+        const userEmail = user?.primaryEmailAddress?.emailAddress;
+
+        if (userEmail) {
+            const { isBlocked, errorResponse } = await checkUserBlock(userEmail);
+            if (isBlocked) return errorResponse;
         }
 
         // 1. Extract text from PDF using pdf-parse-fork (Robust, no worker issues)
@@ -119,9 +128,6 @@ ${resumeText}
                 },
             }
         );
-
-        const user = await currentUser();
-        const userEmail = user?.primaryEmailAddress?.emailAddress;
 
         const aiOutput = JSON.parse(response.data.choices[0].message.content);
 
