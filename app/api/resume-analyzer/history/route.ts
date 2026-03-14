@@ -14,6 +14,10 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        // 0. Check if user is blocked
+        const { isBlocked, errorResponse } = await checkUserBlock(userEmail);
+        if (isBlocked) return errorResponse;
+
         const history = await db.select()
             .from(resumeAnalysisTable)
             .where(eq(resumeAnalysisTable.userEmail, userEmail))
@@ -43,6 +47,10 @@ export async function DELETE(req: NextRequest) {
         if (!userEmail) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+
+        // 0. Check if user is blocked
+        const { isBlocked, errorResponse } = await checkUserBlock(userEmail);
+        if (isBlocked) return errorResponse;
 
         const { searchParams } = new URL(req.url);
         const id = searchParams.get("id");
