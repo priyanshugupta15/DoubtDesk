@@ -14,7 +14,7 @@ const AppFont = DM_Sans({
   variable: '--font-app',
 })
 export const metadata: Metadata = {
-  title: "DoubtDesk - AI Career Coach",
+  title: "DoubtDesk - AI Doubt Solver",
   description: "DoubtDesk is your personal AI career wingman. From resume analysis to custom learning roadmaps, we provide the tools you need to level up your professional life.",
 };
 

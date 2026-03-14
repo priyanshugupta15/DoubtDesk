@@ -3,11 +3,17 @@ import axios from "axios";
 import { db } from "@/configs/db";
 import { coverLettersTable } from "@/configs/schema";
 import { currentUser } from "@clerk/nextjs/server";
+import { checkUserBlock } from "@/lib/auth-utils";
 
 export async function POST(req: NextRequest) {
     try {
         const user = await currentUser();
         const userEmail = user?.primaryEmailAddress?.emailAddress;
+
+        if (userEmail) {
+            const { isBlocked, errorResponse } = await checkUserBlock(userEmail);
+            if (isBlocked) return errorResponse;
+        }
 
         const { jobDescription, userDetails } = await req.json();
 

@@ -3,6 +3,7 @@ import { db } from '@/configs/db';
 import { classroomsTable, membershipsTable, usersTable } from '@/configs/schema';
 import { eq, and } from 'drizzle-orm';
 import { currentUser } from '@clerk/nextjs/server';
+import { checkUserBlock } from '@/lib/auth-utils';
 
 // 1. GET: List classrooms for the user + Recommendations
 export async function GET(req: Request) {
@@ -14,8 +15,9 @@ export async function GET(req: Request) {
 
         const email = user.primaryEmailAddress.emailAddress;
 
-        // Get user details for recommendations
-        const [dbUser] = await db.select().from(usersTable).where(eq(usersTable.email, email));
+        // 0. Check if user is blocked
+        const { isBlocked, errorResponse, dbUser } = await checkUserBlock(email);
+        if (isBlocked) return errorResponse;
 
         // Fetch classrooms where user is a member
         const joinedRooms = await db
@@ -75,8 +77,11 @@ export async function POST(req: Request) {
 
         const email = user.primaryEmailAddress.emailAddress;
         
+        // 0. Check if user is blocked
+        const { isBlocked, errorResponse, dbUser } = await checkUserBlock(email);
+        if (isBlocked) return errorResponse;
+
         // Final check for teacher/admin role in DB
-        const [dbUser] = await db.select().from(usersTable).where(eq(usersTable.email, email));
         if (!dbUser || (dbUser.role !== 'teacher' && dbUser.role !== 'admin')) {
             return NextResponse.json({ error: 'Only teachers can create classrooms' }, { status: 403 });
         }

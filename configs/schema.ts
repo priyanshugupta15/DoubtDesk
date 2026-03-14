@@ -1,4 +1,4 @@
-import { integer, pgTable, varchar, text, timestamp, boolean } from "drizzle-orm/pg-core";
+import { integer, pgTable, varchar, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
 
 export const usersTable = pgTable("users", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -9,6 +9,10 @@ export const usersTable = pgTable("users", {
     collegeEmail: varchar({ length: 255 }),
     role: varchar({ length: 20 }), // 'student', 'teacher', 'admin'
     onboarded: boolean().default(false),
+    violationCount: integer().default(0).notNull(),
+    isBlocked: boolean().default(false).notNull(),
+    blockedUntil: timestamp(),
+    blockCount: integer().default(0).notNull(),
     createdAt: timestamp().defaultNow().notNull(),
 });
 
@@ -28,6 +32,11 @@ export const membershipsTable = pgTable("memberships", {
     classroomId: integer().notNull(),
     role: varchar({ length: 20 }).notNull(), // 'student', 'teacher', 'admin'
     joinedAt: timestamp().defaultNow().notNull(),
+}, (table) => {
+    return {
+        userEmailIndex: index("userEmail_idx").on(table.userEmail),
+        classroomIdIndex: index("classroomId_idx").on(table.classroomId),
+    };
 });
 
 export const chatHistoryTable = pgTable("chat_history", {
@@ -85,6 +94,7 @@ export const resumesTable = pgTable("resumes", {
 export const doubtsTable = pgTable("doubts", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     userName: varchar({ length: 255 }).notNull(), // Randomly generated Student_XXX
+    userEmail: varchar({ length: 255 }), // Secure owner identification
     classroomId: integer(), // Null for public, or ID for classroom-specific
     subject: varchar({ length: 100 }).notNull(), // Math, Physics, Programming, Others
     subTopic: varchar({ length: 255 }), // Granular topic detected by AI
@@ -93,7 +103,14 @@ export const doubtsTable = pgTable("doubts", {
     likes: integer().default(0),
     isSolved: varchar({ length: 20 }).default("unsolved"), // unsolved, solved
     solvedReplyId: integer(), // ID of the specific reply that solved it
+    type: varchar({ length: 20 }).default("community"), // 'ai', 'community', 'teacher'
     createdAt: timestamp().defaultNow().notNull(),
+}, (table) => {
+    return {
+        classroomIdIndex: index("doubt_classroomId_idx").on(table.classroomId),
+        typeIndex: index("type_idx").on(table.type),
+        subjectIndex: index("subject_idx").on(table.subject),
+    };
 });
 
 export const likesTable = pgTable("likes", {
@@ -110,5 +127,16 @@ export const repliesTable = pgTable("replies", {
     type: varchar({ length: 20 }).notNull(), // 'comment' or 'solution'
     content: text(),
     imageUrl: text(),
+    createdAt: timestamp().defaultNow().notNull(),
+}, (table) => ({
+    doubtIdIndex: index("doubtId_idx").on(table.doubtId),
+}));
+
+export const moderationLogsTable = pgTable("moderation_logs", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userEmail: varchar({ length: 255 }).notNull(),
+    reason: text().notNull(),
+    violationType: varchar({ length: 50 }).notNull(), // 'abusive', 'off-topic', etc.
+    contentSnippet: text(),
     createdAt: timestamp().defaultNow().notNull(),
 });

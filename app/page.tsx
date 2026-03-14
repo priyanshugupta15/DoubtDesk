@@ -107,7 +107,7 @@ export default function Home() {
               <SignedIn>
                 <Link href="/rooms" className="w-full sm:w-auto">
                   <button className="group px-10 py-5 bg-blue-600 text-white rounded-2xl text-lg font-bold hover:bg-blue-700 hover:shadow-[0_0_30px_rgba(37,99,235,0.4)] transition-all w-full flex items-center justify-center gap-2">
-                    Open Your Dashboard
+                    Open Classroom
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </Link>
@@ -122,28 +122,6 @@ export default function Home() {
               </SignedOut>
             </div>
 
-            {/* Feature Grid */}
-            <div id="features" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-left pb-20 max-w-5xl mx-auto">
-              {[
-                { icon: MessageCircle, title: "Career Chat", desc: "24/7 access to AI guidance", color: "blue", gradient: "from-blue-500 to-cyan-500" },
-                { icon: FileText, title: "Resume Builder", desc: "Complete resume creation & optimization", color: "purple", gradient: "from-purple-500 to-pink-500" },
-                { icon: Map, title: "Custom Paths", desc: "Skill-based learning tracks", color: "emerald", gradient: "from-emerald-500 to-teal-500" },
-              ].map((feature, i) => (
-                <div key={i} className="group relative p-8 bg-white/5 border border-white/10 rounded-[2.5rem] hover:bg-white/[0.08] transition-all duration-300 backdrop-blur-xl">
-                  {/* Hover Glow Effect */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 blur-3xl rounded-[2.5rem] transition-opacity`}></div>
-
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.gradient} p-0.5 mb-6 group-hover:scale-110 transition-transform shadow-lg`}>
-                    <div className="w-full h-full bg-slate-900 rounded-[calc(1rem-2px)] flex items-center justify-center">
-                      <feature.icon className="w-7 h-7 text-white" />
-                    </div>
-                  </div>
-
-                  <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
-                  <p className="text-slate-400 leading-relaxed">{feature.desc}</p>
-                </div>
-              ))}
-            </div>
           </div>
         </section>
 

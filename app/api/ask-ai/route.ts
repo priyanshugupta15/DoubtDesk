@@ -2,8 +2,10 @@ import { NextResponse } from 'next/server';
 import Groq from 'groq-sdk';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { db } from '@/configs/db';
-import { doubtsTable, repliesTable } from '@/configs/schema';
-import { eq } from 'drizzle-orm';
+import { doubtsTable, repliesTable, usersTable, moderationLogsTable } from '@/configs/schema';
+import { eq, sql } from 'drizzle-orm';
+import { moderateContent } from '@/lib/moderation';
+import { sendWarningEmail, sendBlockEmail } from '@/lib/email';
 
 const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY,
@@ -52,21 +54,80 @@ async function callGroqWithFallback(messages: any[], isVision: boolean) {
 
 export async function POST(req: Request) {
     try {
-        const { userId, sessionClaims } = await auth();
-        if (!userId) {
+        const user = await currentUser();
+        if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Try to get name from claims, fallback to currentUser for full detail if needed for DB
-        let fullName = (sessionClaims as any)?.full_name || (sessionClaims as any)?.name || "";
+        const fullName = user.fullName || (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : "Academic Student");
+        const email = user.primaryEmailAddress?.emailAddress;
+        if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
 
-        if (!fullName) {
-             const user = await currentUser();
-             fullName = user?.fullName || "";
+        // 0. Check if user is blocked
+        const [dbUser] = await db.select().from(usersTable).where(eq(usersTable.email, email));
+        if (dbUser?.blockedUntil && new Date(dbUser.blockedUntil) > new Date()) {
+            const unlockDate = new Date(dbUser.blockedUntil).toDateString();
+            return NextResponse.json({ 
+                error: `Your account is temporarily blocked due to safety violations. Access will be restored on ${unlockDate}.` 
+            }, { status: 403 });
         }
 
         const body = await req.json();
         const { prompt, type = 'standard', imageBase64, classroomId } = body;
+
+        // 1. AI Moderation Check for Prompts
+        if (prompt) {
+            const moderation = await moderateContent(prompt);
+            if (!moderation.isAllowed) {
+                // Increment strikes
+                const newViolationCount = (dbUser?.violationCount || 0) + 1;
+                const isThirdViolation = newViolationCount >= 3;
+                let blockedUntil: Date | null = null;
+                let newBlockCount = dbUser?.blockCount || 0;
+
+                if (isThirdViolation) {
+                    newBlockCount += 1;
+                    // Duration: 3 days (1), 1 week (2), 2 weeks (3), etc.
+                    let durationDays = 3;
+                    if (newBlockCount === 2) durationDays = 7;
+                    else if (newBlockCount >= 3) durationDays = 14 * Math.pow(2, newBlockCount - 3);
+
+                    blockedUntil = new Date();
+                    blockedUntil.setDate(blockedUntil.getDate() + durationDays);
+                    
+                    // Send Block Email
+                    await sendBlockEmail(email, durationDays, newBlockCount);
+                }
+
+                await db.update(usersTable)
+                    .set({
+                        violationCount: newViolationCount,
+                        isBlocked: isThirdViolation,
+                        blockedUntil: blockedUntil,
+                        blockCount: newBlockCount
+                    })
+                    .where(eq(usersTable.email, email));
+
+                // Log violation
+                await db.insert(moderationLogsTable).values({
+                    userEmail: email,
+                    reason: moderation.reason,
+                    violationType: moderation.violationType || 'other',
+                    contentSnippet: prompt.substring(0, 100)
+                });
+
+                // Send Email Warning (Simulation)
+                await sendWarningEmail(email, moderation.reason, newViolationCount);
+
+                let errorMessage = `Content flagged: ${moderation.reason}. This is strike ${newViolationCount}/3. Please stick to academic topics.`;
+                if (isThirdViolation && blockedUntil) {
+                    const unlockDate = blockedUntil.toDateString();
+                    errorMessage = `Content flagged. Your account is now blocked for ${newBlockCount > 1 ? 'additional ' : ''}violations. Access restored on ${unlockDate}.`;
+                }
+
+                return NextResponse.json({ error: errorMessage }, { status: 400 });
+            }
+        }
 
         if (!prompt && !imageBase64) {
             return NextResponse.json({ error: 'Prompt or image is required' }, { status: 400 });
@@ -129,11 +190,13 @@ ${prompt ? `Additional context from student: ${prompt}` : ''}`;
         // --- FULL PERSISTENCE LOGIC ---
         try {
             const [newDoubt] = await db.insert(doubtsTable).values({
-                userName: fullName || `Student_${Math.floor(Math.random() * 1000)}`,
+                userName: fullName,
+                userEmail: email || null,
                 subject: subject,
                 content: prompt || "Visual Inquiry",
                 imageUrl: imageBase64?.slice(0, 500),
                 classroomId: classroomId ? parseInt(classroomId.toString()) : null,
+                type: 'ai',
                 isSolved: "solved"
             }).returning();
 

@@ -9,6 +9,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
+import { toast } from 'sonner';
 import 'katex/dist/katex.min.css';
 
 type SolveType = 'standard' | 'simple' | 'exam' | 'eli10';
@@ -107,6 +108,7 @@ export default function AskAIView({ classroomId = null }: { classroomId?: number
             setResponse(data.reply);
         } catch (err: any) {
             setErrorMsg(err.message || "Something went wrong. Please try again.");
+            toast.error(err.message || "Failed to process AI request.");
         } finally {
             setIsLoading(false);
         }

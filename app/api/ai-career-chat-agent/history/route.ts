@@ -3,6 +3,7 @@ import { eq, desc, sql, and } from "drizzle-orm";
 import { db } from "@/configs/db";
 import { chatHistoryTable } from "@/configs/schema";
 import { currentUser } from "@clerk/nextjs/server";
+import { checkUserBlock } from "@/lib/auth-utils";
 
 export async function GET(req: NextRequest) {
     try {
@@ -12,6 +13,10 @@ export async function GET(req: NextRequest) {
         }
 
         const email = clerkUser.primaryEmailAddress.emailAddress;
+
+        // 0. Check if user is blocked
+        const { isBlocked, errorResponse } = await checkUserBlock(email);
+        if (isBlocked) return errorResponse;
 
         // Check for specific chatId in query params
         const url = new URL(req.url);
@@ -55,6 +60,11 @@ export async function POST(req: NextRequest) {
         }
 
         const email = clerkUser.primaryEmailAddress.emailAddress;
+
+        // 0. Check if user is blocked
+        const { isBlocked, errorResponse } = await checkUserBlock(email);
+        if (isBlocked) return errorResponse;
+
         const body = await req.json();
         const { role, content, chatId, chatTitle } = body;
 
@@ -88,6 +98,11 @@ export async function DELETE(req: NextRequest) {
         }
 
         const email = clerkUser.primaryEmailAddress.emailAddress;
+
+        // 0. Check if user is blocked
+        const { isBlocked, errorResponse } = await checkUserBlock(email);
+        if (isBlocked) return errorResponse;
+
         const url = new URL(req.url);
         const chatId = url.searchParams.get("chatId");
 
@@ -96,7 +111,7 @@ export async function DELETE(req: NextRequest) {
         }
 
         // Delete all messages for this chatId and user
-        const result = await db.delete(chatHistoryTable)
+        await db.delete(chatHistoryTable)
             .where(
                 and(
                     eq(chatHistoryTable.chatId, chatId),

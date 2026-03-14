@@ -2,17 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { X, Loader2, Upload, File } from "lucide-react";
+import { toast } from "sonner";
 
 interface AskDoubtProps {
-    subject?: string;
+    defaultSubject?: string;
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
     doubtToEdit?: any;
     classroomId?: number | null;
+    type?: string;
 }
 
-export default function AskDoubt({ subject: defaultSubject = "", isOpen, onClose, onSuccess, doubtToEdit, classroomId = null }: AskDoubtProps) {
+export default function AskDoubt({ defaultSubject = "", isOpen, onClose, onSuccess, doubtToEdit, classroomId = null, type = 'community' }: AskDoubtProps) {
     const [content, setContent] = useState(doubtToEdit?.content || "");
     const [subject, setSubject] = useState(doubtToEdit?.subject || defaultSubject);
     const [imageUrl, setImageUrl] = useState(doubtToEdit?.imageUrl || "");
@@ -62,7 +64,7 @@ export default function AskDoubt({ subject: defaultSubject = "", isOpen, onClose
             const method = doubtToEdit ? "PATCH" : "POST";
             const body = doubtToEdit 
                 ? { action: "edit", content, subject, imageUrl }
-                : { userName, subject, content, imageUrl, classroomId };
+                : { userName, subject, content, imageUrl, classroomId, type };
 
             const res = await fetch(url, {
                 method,
@@ -70,11 +72,17 @@ export default function AskDoubt({ subject: defaultSubject = "", isOpen, onClose
                 body: JSON.stringify(body),
             });
 
+            const data = await res.json();
+
             if (res.ok) {
                 onSuccess();
+                toast.success(doubtToEdit ? "Doubt updated successfully!" : "Doubt posted successfully!");
+            } else {
+                toast.error(data.error || "Failed to post doubt.");
             }
         } catch (error) {
             console.error("Submission failed:", error);
+            toast.error("An unexpected error occurred.");
         } finally {
             setIsSubmitting(false);
         }
@@ -88,7 +96,7 @@ export default function AskDoubt({ subject: defaultSubject = "", isOpen, onClose
                 <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
                     <div>
                         <h2 className="text-2xl font-black text-white tracking-tight uppercase italic">
-                            {doubtToEdit ? "Edit" : "Ask a"} <span className="text-blue-500">Doubt</span>
+                            {doubtToEdit ? "Edit" : "Ask"} {type === 'teacher' ? <span className="text-purple-500">Teacher</span> : <span className="text-blue-500">Doubt</span>}
                         </h2>
                         <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-1">
                             Collaborative • Anonymous • {userName}

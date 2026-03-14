@@ -3,6 +3,7 @@ import { db } from "@/configs/db";
 import { coverLettersTable } from "@/configs/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq, desc, and } from "drizzle-orm";
+import { checkUserBlock } from "@/lib/auth-utils";
 
 export async function GET(req: NextRequest) {
     try {
@@ -12,6 +13,10 @@ export async function GET(req: NextRequest) {
         if (!userEmail) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+
+        // 0. Check if user is blocked
+        const { isBlocked, errorResponse } = await checkUserBlock(userEmail);
+        if (isBlocked) return errorResponse;
 
         const history = await db.select()
             .from(coverLettersTable)
@@ -36,6 +41,10 @@ export async function DELETE(req: NextRequest) {
         if (!userEmail) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+
+        // 0. Check if user is blocked
+        const { isBlocked, errorResponse } = await checkUserBlock(userEmail);
+        if (isBlocked) return errorResponse;
 
         const { searchParams } = new URL(req.url);
         const id = searchParams.get("id");

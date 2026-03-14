@@ -9,9 +9,10 @@ import { toast } from "sonner";
 interface DoubtCardProps {
     doubt: any;
     onUpdate?: () => void;
+    role?: string;
 }
 
-export default function DoubtCard({ doubt, onUpdate }: DoubtCardProps) {
+export default function DoubtCard({ doubt, onUpdate, role }: DoubtCardProps) {
     const [isOwner, setIsOwner] = useState(false);
     const [isLiking, setIsLiking] = useState(false);
     const [isSolving, setIsSolving] = useState(false);
@@ -20,6 +21,8 @@ export default function DoubtCard({ doubt, onUpdate }: DoubtCardProps) {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isRepliesOpen, setIsRepliesOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    const isTeacher = role === 'teacher';
 
     useEffect(() => {
         const savedName = localStorage.getItem("anonymous_user");
@@ -41,12 +44,16 @@ export default function DoubtCard({ doubt, onUpdate }: DoubtCardProps) {
                 body: JSON.stringify({ action, userName }),
             });
 
+            const data = await res.json();
+
             if (res.ok && onUpdate) {
                 onUpdate();
                 if (action === "solve") {
                     const statusText = doubt.isSolved === "solved" ? "Doubt marked as unsolved." : "Doubt marked as solved!";
                     toast.success(statusText);
                 }
+            } else if (!res.ok) {
+                toast.error(data.error || `Failed to ${action} doubt.`);
             }
         } catch (error) {
             console.error(`Action ${action} failed:`, error);
@@ -102,10 +109,15 @@ export default function DoubtCard({ doubt, onUpdate }: DoubtCardProps) {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        {doubt.isSolved === "solved" && (
+                        {doubt.isSolved === "solved" ? (
                             <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
                                 <CheckCircle className="w-3 h-3 text-emerald-500" />
                                 <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Solved</span>
+                            </div>
+                        ) : (
+                            <div className="px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full flex items-center gap-1.5">
+                                <AlertTriangle className="w-3 h-3 text-red-500" />
+                                <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">Unsolved</span>
                             </div>
                         )}
                         <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full">
@@ -155,6 +167,17 @@ export default function DoubtCard({ doubt, onUpdate }: DoubtCardProps) {
                             <span className="text-xs font-black">{doubt.likes || 0}</span>
                         </button>
                         
+                        {((isOwner && doubt.type !== 'ai') || isTeacher) && doubt.isSolved !== "solved" && (
+                            <button 
+                                onClick={() => handleAction("solve")}
+                                disabled={isSolving}
+                                className="flex-1 sm:flex-none flex items-center justify-center gap-3 px-6 py-3 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-500 hover:text-white rounded-2xl transition-all border border-emerald-500/20 active:scale-95 group/sol"
+                            >
+                                <CheckCircle className={`w-4 h-4 ${isSolving ? 'animate-spin' : 'group-hover/sol:scale-110'}`} />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Mark Solved</span>
+                            </button>
+                        )}
+
                         {doubt.isSolved === "solved" && (
                             <button 
                                 onClick={() => setIsRepliesOpen(true)}
@@ -167,14 +190,16 @@ export default function DoubtCard({ doubt, onUpdate }: DoubtCardProps) {
                     </div>
 
                     <div className="flex items-center gap-2.5">
-                        {isOwner && (
+                        {(isOwner || isTeacher) && (
                             <div className="flex items-center gap-1.5 p-1.5 bg-white/5 rounded-2xl border border-white/5 flex-1 sm:flex-none justify-center">
-                                <button 
-                                    onClick={() => setIsEditModalOpen(true)}
-                                    className="flex-1 sm:flex-none p-3 rounded-xl hover:bg-blue-600/20 text-slate-500 hover:text-blue-400 transition-all group/edit"
-                                >
-                                    <Edit2 className="w-4 h-4 group-hover/edit:scale-110 transition-transform" />
-                                </button>
+                                {isOwner && (
+                                    <button 
+                                        onClick={() => setIsEditModalOpen(true)}
+                                        className="flex-1 sm:flex-none p-3 rounded-xl hover:bg-blue-600/20 text-slate-500 hover:text-blue-400 transition-all group/edit"
+                                    >
+                                        <Edit2 className="w-4 h-4 group-hover/edit:scale-110 transition-transform" />
+                                    </button>
+                                )}
                                 <button 
                                     onClick={() => setIsDeleteDialogOpen(true)}
                                     className="flex-1 sm:flex-none p-3 rounded-xl hover:bg-red-500/20 text-slate-500 hover:text-red-400 transition-all group/trash"
@@ -211,6 +236,7 @@ export default function DoubtCard({ doubt, onUpdate }: DoubtCardProps) {
                     isOpen={isRepliesOpen}
                     onClose={() => setIsRepliesOpen(false)}
                     onReplyChange={onUpdate}
+                    isTeacher={isTeacher}
                 />
             </div>
 
